@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Usuario")
+@Table(name = "usuario") // Nome da tabela em minúsculas
 public class User {
 
     @Id
@@ -25,9 +25,58 @@ public class User {
     @Column(nullable = false)
     private String senha;
 
-    @Column(nullable = false)
-    private boolean ativo;
+    @Column(name = "cod_status", nullable = false)
+    private String codStatus = "A"; // Valor padrão
 
-    @Column(nullable = false)
-    private boolean admin;
+    @Column(name = "is_Admin", nullable = false) // Ajuste no nome da coluna
+    private boolean admin = false; // Valor padrão
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+
+    public String getCodStatus() {
+        return codStatus;
+    }
+
+    public void setCodStatus(String codStatus) {
+        this.codStatus = codStatus;
+    }
+
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
 }
