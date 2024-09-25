@@ -31,17 +31,15 @@ public class UserService {
     }
 
     public User updateUser(Long id, User userDetails) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            User updatedUser = user.get();
-            updatedUser.setNome(userDetails.getNome());
-            updatedUser.setEmail(userDetails.getEmail());
-            updatedUser.setSenha(userDetails.getSenha());
-            updatedUser.setCodStatus(userDetails.getCodStatus()); // Corrigido
-            updatedUser.setAdmin(userDetails.isAdmin());
-            return userRepository.save(updatedUser);
-        }
-        return null; // Ou lançar uma exceção
+        User updatedUser = userRepository.findById(id)
+                .orElseThrow(() -> new NotFound("Usuário com ID " + id + " não encontrado."));
+
+        updatedUser.setNome(userDetails.getNome());
+        updatedUser.setEmail(userDetails.getEmail());
+        updatedUser.setSenha(userDetails.getSenha());
+        updatedUser.setCodStatus(userDetails.getCodStatus());
+        updatedUser.setAdmin(userDetails.isAdmin());
+        return userRepository.save(updatedUser);
     }
 
     public void deleteUser(Long id) {
