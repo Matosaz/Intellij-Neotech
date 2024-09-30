@@ -29,18 +29,29 @@ public class UserService {
         System.out.println("Criando usuário: " + user);
         return userRepository.save(user);
     }
-
     public User updateUser(Long id, User userDetails) {
         User updatedUser = userRepository.findById(id)
                 .orElseThrow(() -> new NotFound("Usuário com ID " + id + " não encontrado."));
 
-        updatedUser.setNome(userDetails.getNome());
-        updatedUser.setEmail(userDetails.getEmail());
-        updatedUser.setSenha(userDetails.getSenha());
-        updatedUser.setCodStatus(userDetails.getCodStatus());
+        if (userDetails.getNome() != null) {
+            updatedUser.setNome(userDetails.getNome());
+        }
+        if (userDetails.getEmail() != null) {
+            updatedUser.setEmail(userDetails.getEmail());
+        }
+        if (userDetails.getSenha() != null) {
+            updatedUser.setSenha(userDetails.getSenha());
+        }
+        if (userDetails.getCodStatus() != null) {
+            updatedUser.setCodStatus(userDetails.getCodStatus());
+        }
         updatedUser.setAdmin(userDetails.isAdmin());
+
         return userRepository.save(updatedUser);
+
     }
+
+
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);

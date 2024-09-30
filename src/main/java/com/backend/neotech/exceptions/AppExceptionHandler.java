@@ -23,14 +23,15 @@ public class AppExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = {Exception.class})
     public ResponseEntity<Object> globalException(Exception ex, WebRequest request) {
         LocalDateTime localDateTimeBrasil = LocalDateTime.now(zoneIdBrasil);
-        String errorMessageDescription = ex.getLocalizedMessage(); // Mensagem de erro detalhada, talvez não seja adequada client
-        System.out.println(errorMessageDescription);              // Exibindo a mensagem real, bom para sabermos o que de fato ocorreu
-        errorMessageDescription = "Ocorreu um erro interno no servidor:"; // Substituindo por uma mensagem genérica
-        arrayMessage = errorMessageDescription.split(":");
-        ErrorMessage errorMessage = new ErrorMessage(localDateTimeBrasil, arrayMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        String errorMessageDescription = ex.getLocalizedMessage();
+        System.out.println("Erro: " + errorMessageDescription); // Mensagem real de erro
+        ex.printStackTrace(); // Exibe o stack trace para ajudar no diagnóstico
+
+        ErrorMessage errorMessage = new ErrorMessage(localDateTimeBrasil, new String[]{"Ocorreu um erro interno no servidor"}, HttpStatus.INTERNAL_SERVER_ERROR);
 
         return new ResponseEntity<>(errorMessage, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     // Erro : 400
     @ExceptionHandler(value = {BadRequest.class})
