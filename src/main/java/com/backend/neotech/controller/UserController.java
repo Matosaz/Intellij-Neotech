@@ -20,6 +20,8 @@ public class UserController {
         this.userService = userService;
     }
 
+
+
     // Listar todos os usuários
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
@@ -42,6 +44,7 @@ public class UserController {
         URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/users").toUriString());
         return ResponseEntity.created(uri).body(userService.createUser(user));
     }
+
 
     // Atualizar um usuário existente
     @PutMapping("/{id}")
