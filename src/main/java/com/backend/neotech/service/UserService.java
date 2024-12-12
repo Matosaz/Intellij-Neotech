@@ -1,12 +1,13 @@
 package com.backend.neotech.service;
 
+import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.exceptions.NotFound;
 import com.backend.neotech.model.User;
 import com.backend.neotech.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -17,6 +18,11 @@ public class UserService {
     private UserRepository userRepository;
 
 
+
+    public Optional<User> getUserByEmail(String email) {
+     return userRepository.findByEmail(email);
+
+    }
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFound("Usuário com ID " + id + " não encontrado."));
@@ -31,6 +37,8 @@ public class UserService {
         System.out.println("Criando usuário: " + user);
         return userRepository.save(user);
     }
+
+
     public User updateUser(Long id, User userDetails) {
         User updatedUser = userRepository.findById(id)
                 .orElseThrow(() -> new NotFound("Usuário com ID " + id + " não encontrado."));
@@ -51,6 +59,7 @@ public class UserService {
 
         return userRepository.save(updatedUser);
 
+
     }
 
 
@@ -58,5 +67,6 @@ public class UserService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
+
 
 }
