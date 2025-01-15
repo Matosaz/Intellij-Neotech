@@ -1,5 +1,4 @@
 package com.backend.neotech.controller;
-
 import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.exceptions.NotFound;
 import com.backend.neotech.model.User;
@@ -12,6 +11,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static javax.swing.UIManager.put;
@@ -35,9 +35,17 @@ public class UserController {
 
         if (userOpt.isPresent() && userOpt.get().getSenha().equals(loginUser.getSenha())) {
             // Aqui você pode gerar um token ou qualquer outro mecanismo de autenticação
-            return ResponseEntity.ok().body(new HashMap<String, String>() {{
-                put("message","Login bem-sucedido!");
-            }});
+
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Login bem-sucedido!");  // Mensagem de sucesso
+            response.put("nome", userOpt.get().getNome());   // Nome do usuário
+
+            return ResponseEntity.ok().body(response);
+
+
+
+
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new HashMap<String, String>() {{
                 put("message","Credenciais inválidas!");
