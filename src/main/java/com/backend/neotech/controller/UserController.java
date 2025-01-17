@@ -1,6 +1,5 @@
 package com.backend.neotech.controller;
 import com.backend.neotech.exceptions.BadRequest;
-import com.backend.neotech.exceptions.NotFound;
 import com.backend.neotech.model.User;
 import com.backend.neotech.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static javax.swing.UIManager.put;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -34,17 +32,18 @@ public class UserController {
         Optional<User> userOpt = userService.getUserByEmail(loginUser.getEmail());
 
         if (userOpt.isPresent() && userOpt.get().getSenha().equals(loginUser.getSenha())) {
+
             // Aqui você pode gerar um token ou qualquer outro mecanismo de autenticação
 
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Login bem-sucedido!");  // Mensagem de sucesso
             response.put("nome", userOpt.get().getNome());   // Nome do usuário
+            response.put("email", userOpt.get().getEmail());   // Email do usuário
+            response.put("isAdmin", String.valueOf(userOpt.get().isAdmin())); // Acessando diretamente o campo admin
+
 
             return ResponseEntity.ok().body(response);
-
-
-
 
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new HashMap<String, String>() {{
@@ -52,6 +51,7 @@ public class UserController {
             }});
         }
     }
+
 
 
     // Listar todos os usuários

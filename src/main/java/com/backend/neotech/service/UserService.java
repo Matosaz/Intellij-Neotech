@@ -1,6 +1,4 @@
 package com.backend.neotech.service;
-
-import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.exceptions.NotFound;
 import com.backend.neotech.model.User;
 import com.backend.neotech.repository.UserRepository;
@@ -14,15 +12,15 @@ import java.util.Optional;
 public class UserService {
 
 
+
     @Autowired
     private UserRepository userRepository;
-
-
 
     public Optional<User> getUserByEmail(String email) {
      return userRepository.findByEmail(email);
 
     }
+
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFound("Usuário com ID " + id + " não encontrado."));
