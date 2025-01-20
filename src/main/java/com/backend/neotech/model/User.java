@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,11 +24,35 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = true)
+    private String cpf;
+
     @Column(nullable = false)
     private String senha;
 
+    @Column(nullable = true)
+    private Date data_nascimento;
+
+    @Column(nullable = true)
+    private String telefone;
+
+    @Column(nullable = true)
+    private String cep;
+
+    @Column(nullable = true)
+    private String endereco;
+
+    @Column(nullable = true)
+    private String bairro;
+
+    @Column(nullable = true)
+    private String cidade;
+
+    @Column(nullable = true)
+    private String estado;
+
     @Column(name = "cod_status", nullable = false)
-    private String codStatus = "A"; // Valor padrão
+    private String codStatus = "Ativo"; // Valor padrão
 
     @Column(name = "is_Admin", nullable = false) // Ajuste no nome da coluna
     private boolean admin = false; // Valor padrão

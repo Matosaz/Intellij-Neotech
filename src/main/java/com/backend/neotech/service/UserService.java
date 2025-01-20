@@ -53,6 +53,27 @@ public class UserService {
         if (userDetails.getCodStatus() != null) {
             updatedUser.setCodStatus(userDetails.getCodStatus());
         }
+        if (userDetails.getCpf() != null) {
+            updatedUser.setCpf(userDetails.getCpf());  // Campo CPF
+        }
+        if (userDetails.getTelefone() != null) {
+            updatedUser.setTelefone(userDetails.getTelefone());  // Campo telefone
+        }
+        if (userDetails.getEndereco() != null) {
+            updatedUser.setEndereco(userDetails.getEndereco());  // Campo endereço
+        }
+        if (userDetails.getCidade() != null) {
+            updatedUser.setCidade(userDetails.getCidade());  // Campo cidade
+        }
+        if (userDetails.getBairro() != null) {
+            updatedUser.setBairro(userDetails.getBairro());  // Campo bairro
+        }
+        if (userDetails.getEstado() != null) {
+            updatedUser.setEstado(userDetails.getEstado());  // Campo estado
+        }
+        if (userDetails.getData_nascimento() != null) {
+            updatedUser.setData_nascimento(userDetails.getData_nascimento());  // Data de nascimento
+        }
         updatedUser.setAdmin(userDetails.isAdmin());
 
         return userRepository.save(updatedUser);
