@@ -24,7 +24,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = true)
+    @Column(nullable = true, length = 11)
     private String cpf;
 
     @Column(nullable = false)
@@ -50,6 +50,10 @@ public class User {
 
     @Column(nullable = true)
     private String estado;
+
+    @Column(name = "avatar", nullable = true)
+    @Lob // Define que o campo será armazenado como BLOB
+    private byte[] avatar;
 
     @Column(name = "cod_status", nullable = false)
     private String codStatus = "Ativo"; // Valor padrão

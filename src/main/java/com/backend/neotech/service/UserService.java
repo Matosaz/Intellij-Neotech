@@ -56,6 +56,9 @@ public class UserService {
         if (userDetails.getCpf() != null) {
             updatedUser.setCpf(userDetails.getCpf());  // Campo CPF
         }
+        if (userDetails.getCep() != null) {
+            updatedUser.setCep(userDetails.getCep());  // Campo CEP
+        }
         if (userDetails.getTelefone() != null) {
             updatedUser.setTelefone(userDetails.getTelefone());  // Campo telefone
         }
@@ -73,6 +76,9 @@ public class UserService {
         }
         if (userDetails.getData_nascimento() != null) {
             updatedUser.setData_nascimento(userDetails.getData_nascimento());  // Data de nascimento
+        }
+        if (userDetails.getAvatar() != null) {
+            updatedUser.setAvatar(userDetails.getAvatar());
         }
         updatedUser.setAdmin(userDetails.isAdmin());
 
