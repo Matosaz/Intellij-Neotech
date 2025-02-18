@@ -17,7 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 # ----------------------------------------------------------------------------
-
+# Fix permissions
 # ----------------------------------------------------------------------------
 # Apache Maven Wrapper startup batch script, version 3.3.2
 #
