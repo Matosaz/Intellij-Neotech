@@ -3,6 +3,7 @@ import com.backend.neotech.exceptions.NotFound;
 import com.backend.neotech.model.User;
 import com.backend.neotech.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +16,17 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    public  Optional<User> getUserByEmail(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
 
-    public Optional<User> getUserByEmail(String email) {
-     return userRepository.findByEmail(email);
-
+        if (optionalUser.isEmpty()) {
+            throw new NotFound("Usuário não encontrado para o email: " + email);
+        }
+        return optionalUser;
     }
+
+
+
 
     public User getUserById(Long id) {
         return userRepository.findById(id)

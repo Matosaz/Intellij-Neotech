@@ -2,6 +2,7 @@ package com.backend.neotech.controller;
 
 import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.model.User;
+import com.backend.neotech.repository.UserRepository;
 import com.backend.neotech.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,20 +11,18 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserRepository userRepository) {
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     // Endpoint de login
@@ -43,6 +42,16 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Credenciais inválidas!"));
         }
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmailExists(@RequestParam String email) {
+        boolean exists = userRepository.existsByEmail(email);
+        if (exists) {
+            return ResponseEntity.status(HttpStatus.CONFLICT) // Código de erro 409 para conflito
+                    .body(Collections.singletonMap("exists", exists)); // Pode retornar um JSON indicando a duplicidade
+        }
+        return ResponseEntity.ok(Collections.singletonMap("exists", exists));
     }
 
     // Listar todos os usuários
