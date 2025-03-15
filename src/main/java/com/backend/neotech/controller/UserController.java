@@ -69,7 +69,7 @@ public class UserController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", user.getId());
-            response.put("name", user.getNome());
+            response.put("nome", user.getNome());
             response.put("email", user.getEmail());
             response.put("avatar", avatarBase64);
             response.put("cidade", user.getCidade());
