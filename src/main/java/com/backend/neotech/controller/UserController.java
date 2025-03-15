@@ -72,6 +72,19 @@ public class UserController {
             response.put("name", user.getNome());
             response.put("email", user.getEmail());
             response.put("avatar", avatarBase64);
+            response.put("cidade", user.getCidade());
+            response.put("estado", user.getEstado());
+            response.put("bairro", user.getBairro());
+            response.put("telefone", user.getTelefone());
+            response.put("endereco", user.getEndereco());
+            response.put("cep", user.getCep());
+            response.put("cpf", user.getCpf());
+            response.put("data_nascimento", user.getData_nascimento());
+
+
+
+
+
 
             return ResponseEntity.ok().body(response);
         } catch (NumberFormatException ex) {
