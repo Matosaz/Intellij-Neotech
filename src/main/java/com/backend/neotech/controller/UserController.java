@@ -79,7 +79,7 @@ public class UserController {
             response.put("endereco", user.getEndereco());
             response.put("cep", user.getCep());
             response.put("cpf", user.getCpf());
-            response.put("data_nascimento", user.getData_nascimento());
+            response.put("data_nascimento", user.getData_nascimento()); //Testemos para verificar se funcionará
 
 
 
