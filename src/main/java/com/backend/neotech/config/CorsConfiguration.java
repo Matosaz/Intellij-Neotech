@@ -9,7 +9,7 @@ public class CorsConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**") // Permite todas as rotas que começam com /api
-                .allowedOrigins("https://neotechgroup.netlify.app") // Permite origem do frontend
+                .allowedOrigins("https://localhost:5173") // Permite origem do frontend
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Métodos permitidos
                 .allowedHeaders("*") // Permite todos os headers
                 .allowCredentials(true); // Permite credenciais
