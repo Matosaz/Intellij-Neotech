@@ -2,8 +2,8 @@ package com.backend.neotech.controller;
 
 import com.backend.neotech.model.Orcamento;
 import com.backend.neotech.model.User;
-import com.backend.neotech.repository.OrcamentoRepository;
 import com.backend.neotech.repository.UserRepository;
+import com.backend.neotech.service.OrcamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +20,15 @@ import java.util.Optional;
 public class OrcamentoController {
 
     @Autowired
-    private OrcamentoRepository orcamentoRepository;
-    @Autowired
     private UserRepository userRepository;  // Injeção do repositório UserRepository
+
+    private final OrcamentoService orcamentoService;
+
+    // Injeção de dependência do serviço OrcamentoService
+    @Autowired
+    public OrcamentoController(OrcamentoService orcamentoService) {
+        this.orcamentoService = orcamentoService;
+    }
 
     // Endpoint para criar um novo orçamento
     @PostMapping
@@ -46,24 +52,36 @@ public class OrcamentoController {
             return ResponseEntity.badRequest().body("Usuário inválido ou não fornecido.");
         }
 
-        // Salva o orçamento
-        Orcamento savedOrcamento = orcamentoRepository.save(orcamento);
+        // Verifica se o usuário existe no banco de dados
+        Optional<User> usuarioOptional = userRepository.findById(orcamento.getUsuario().getId());
+        if (!usuarioOptional.isPresent()) {
+            return ResponseEntity.badRequest().body("Usuário não encontrado.");
+        }
 
-        // Criação de URI para o novo orçamento
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(savedOrcamento.getId())
-                .toUri();
+        try {
+            // Salva o orçamento utilizando o serviço
+            Orcamento savedOrcamento = orcamentoService.salvarOrcamento(orcamento);
 
-        return ResponseEntity.created(location).body("Orçamento criado com sucesso.");
+            // Criação de URI para o novo orçamento
+            URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(savedOrcamento.getId())
+                    .toUri();
+
+            return ResponseEntity.created(location).body("Orçamento criado com sucesso.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao salvar o orçamento.");
+        }
     }
 
     // Endpoint para listar todos os orçamentos
     @GetMapping
-    public List<Orcamento> getAllOrcamentos() {
-        return orcamentoRepository.findAll();
+    public ResponseEntity<List<Orcamento>> getAllOrcamentos() {
+        List<Orcamento> orcamentos = orcamentoService.listarOrcamentos();
+        return ResponseEntity.ok(orcamentos);
     }
 
+    // Endpoint para listar orçamentos por usuário
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<Orcamento>> getOrcamentosByUsuario(@PathVariable Long usuarioId) {
         // Verifica se o usuário com o id fornecido existe
@@ -74,7 +92,7 @@ public class OrcamentoController {
         }
 
         // Busca os orçamentos do usuário
-        List<Orcamento> orcamentos = orcamentoRepository.findByUsuario_Id(usuarioId);
+        List<Orcamento> orcamentos = orcamentoService.getOrcamentosByUsuario(usuarioId);
         return ResponseEntity.ok(orcamentos);  // Retorna os orçamentos encontrados
     }
 }
