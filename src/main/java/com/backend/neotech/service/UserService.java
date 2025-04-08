@@ -5,13 +5,56 @@ import com.backend.neotech.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @Service
 public class UserService {
 
 
+
+    @Autowired
+    private EmailService emailService;
+
+    // Armazena os códigos temporários de recuperação
+    private final Map<String, ResetCodeData> resetCodes = new ConcurrentHashMap<>();
+
+    private static class ResetCodeData {
+        String code;
+        LocalDateTime expiresAt;
+
+        ResetCodeData(String code, LocalDateTime expiresAt) {
+            this.code = code;
+            this.expiresAt = expiresAt;
+        }
+    }
+
+    // Armazena o código de recuperação
+    public void storeResetCode(String email, String code) {
+        resetCodes.put(email, new ResetCodeData(code, LocalDateTime.now().plusMinutes(10)));
+    }
+
+    // Valida o código enviado pelo usuário
+    public boolean validateResetCode(String email, String code) {
+        ResetCodeData data = resetCodes.get(email);
+        return data != null && data.code.equals(code) && LocalDateTime.now().isBefore(data.expiresAt);
+    }
+
+    // Atualiza a senha do usuário
+    @Autowired
+    private ResetCodeService resetCodeService;
+
+    public void updatePassword(String email, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFound("Usuário com email " + email + " não encontrado."));
+        user.setSenha(newPassword);
+        userRepository.save(user);
+
+        resetCodeService.removeResetCode(email); // remove do banco após uso
+    }
 
     @Autowired
     private UserRepository userRepository;

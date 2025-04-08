@@ -2,9 +2,17 @@ package com.backend.neotech.controller;
 
 import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.model.User;
+import com.backend.neotech.repository.ResetCodeRepository;
 import com.backend.neotech.repository.UserRepository;
+import com.backend.neotech.service.EmailService;
+import com.backend.neotech.service.ResetCodeService;
 import com.backend.neotech.service.UserService;
 import org.springframework.http.HttpStatus;
+import java.util.concurrent.ConcurrentHashMap;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -17,12 +25,19 @@ import java.util.*;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
+    private final ResetCodeService resetCodeService;
+    private final ResetCodeRepository resetCodeRepository;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
-    public UserController(UserService userService, UserRepository userRepository) {
+    public UserController(ResetCodeRepository resetCodeRepository,ResetCodeService resetCodeService, UserService userService, UserRepository userRepository, EmailService emailService) {
+        this.resetCodeRepository = resetCodeRepository;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.resetCodeService = resetCodeService;
+
     }
 
     // Endpoint de login
@@ -42,6 +57,42 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Credenciais inválidas!"));
         }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("success", false, "message", "E-mail não encontrado."));
+        }
+
+        String code = String.format("%06d", new Random().nextInt(999999));
+
+        // Armazena o código e o horário de criação
+        resetCodeService.storeResetCode(email, code);
+
+        // Envia o e-mail usando o EmailService
+        emailService.sendResetCode(email, code);
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "Código enviado ao e-mail."));
+    }
+    @PostMapping("/verify-code")
+    public ResponseEntity<Map<String, Object>> verifyResetCode(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String code = request.get("code");
+        String newPassword = request.get("newPassword");
+
+        boolean valid = resetCodeService.validateResetCode(email, code);
+        if (!valid) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "Código inválido ou expirado."));
+        }
+
+        userService.updatePassword(email, newPassword);
+        return ResponseEntity.ok(Map.of("success", true, "message", "Senha redefinida com sucesso."));
     }
 
     @GetMapping("/check-email")
