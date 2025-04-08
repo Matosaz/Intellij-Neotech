@@ -4,13 +4,13 @@ import com.backend.neotech.model.ResetCode;
 import com.backend.neotech.repository.ResetCodeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
 public class ResetCodeService {
 
+    //Correção de bugs no sistema de redefinição de senha
     @Autowired
     private ResetCodeRepository resetCodeRepository;
 
