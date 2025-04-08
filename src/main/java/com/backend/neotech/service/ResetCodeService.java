@@ -2,6 +2,7 @@ package com.backend.neotech.service;
 
 import com.backend.neotech.model.ResetCode;
 import com.backend.neotech.repository.ResetCodeRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ public class ResetCodeService {
         return LocalDateTime.now().isBefore(stored.getExpiresAt());
     }
 
+    @Transactional
     public void removeResetCode(String email) {
         resetCodeRepository.deleteByEmail(email); // ou deleteAllByEmail se for mais de um
     }
