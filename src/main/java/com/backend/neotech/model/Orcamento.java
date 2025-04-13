@@ -20,10 +20,10 @@ public class Orcamento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "hora_coleta")
     private Time horaColeta;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "data_coleta")
     private Date dataColeta;
 
     @Column(nullable = false, name = "metodo_contato")
@@ -32,7 +32,7 @@ public class Orcamento {
     @Column(nullable = false, name = "aceita_contato")
     private Boolean aceitaContato;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "coleta_gerada_em")
     private LocalDateTime coletaGeradaEm;
 
 
