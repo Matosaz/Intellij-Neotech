@@ -70,8 +70,10 @@ public class OrcamentoController {
 
             return ResponseEntity.created(location).body("Orçamento criado com sucesso.");
         } catch (Exception e) {
+            e.printStackTrace(); // 👈 loga no console
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao salvar o orçamento.");
         }
+
     }
 
     // Endpoint para listar todos os orçamentos
