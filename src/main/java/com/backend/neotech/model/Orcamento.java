@@ -26,10 +26,10 @@ public class Orcamento {
     @Column(nullable = false)
     private Date dataColeta;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "metodo_contato")
     private String metodoContato;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "aceita_contato")
     private Boolean aceitaContato;
 
     @Column(nullable = false)
