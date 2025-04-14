@@ -85,6 +85,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    //gênero inserido
 
     public User updateUser(Long id, User userDetails) {
         User updatedUser = userRepository.findById(id)
