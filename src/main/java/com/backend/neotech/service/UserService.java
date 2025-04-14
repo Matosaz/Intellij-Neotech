@@ -93,6 +93,9 @@ public class UserService {
         if (userDetails.getNome() != null) {
             updatedUser.setNome(userDetails.getNome());
         }
+        if (userDetails.getGenero() != null) {
+            updatedUser.setGenero(userDetails.getGenero());
+        }
         if (userDetails.getEmail() != null) {
             updatedUser.setEmail(userDetails.getEmail());
         }

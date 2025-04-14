@@ -51,6 +51,9 @@ public class User {
     @Column(nullable = true)
     private String estado;
 
+    @Column(nullable = true)
+    private String genero;
+
     @Column(name = "avatar", nullable = true)
     @Lob // Define que o campo será armazenado como BLOB
     private byte[] avatar;
