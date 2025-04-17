@@ -14,8 +14,17 @@ public class EmailService {
     public void sendResetCode(String toEmail, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject("Código de Recuperação de Senha");
-        message.setText("Seu código de recuperação é: " + code + "\n\nEste código expira em 10 minutos.");
+        message.setSubject("Recuperação de Senha - NeoTech");
+
+        message.setText("Olá,\n\n" +
+                "Recebemos uma solicitação para redefinir a senha da sua conta NeoTech.\n" +
+                "Utilize o código abaixo para continuar com o processo de recuperação:\n\n" +
+                "🔐 Código de recuperação: " + code + "\n\n" +
+                "Este código é válido por 10 minutos.\n\n" +
+                "Se você não solicitou a recuperação de senha, por favor, ignore este e-mail.\n\n" +
+                "Atenciosamente,\n" +
+                "Equipe NeoTech");
+
 
         mailSender.send(message);
         System.out.println("Código enviado para o e-mail: " + toEmail);
