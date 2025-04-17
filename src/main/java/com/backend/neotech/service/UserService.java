@@ -134,7 +134,6 @@ public class UserService {
             updatedUser.setAvatar(userDetails.getAvatar());
         }
 
-        updatedUser.setAdmin(userDetails.isAdmin());
         updatedUser.setUltimaModificacao(LocalDateTime.now());
 
         return userRepository.save(updatedUser);
