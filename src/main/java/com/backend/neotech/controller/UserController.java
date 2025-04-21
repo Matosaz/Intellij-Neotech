@@ -128,6 +128,7 @@ public class UserController {
             response.put("telefone", user.getTelefone());
             response.put("endereco", user.getEndereco());
             response.put("cep", user.getCep());
+            response.put("ultimaModificacao", user.getUltimaModificacao());
             response.put("cpf", user.getCpf());
             response.put("data_nascimento", user.getData_nascimento()); //Testemos para verificar se funcionará
 

@@ -133,6 +133,9 @@ public class UserService {
         if (userDetails.getAvatar() != null) {
             updatedUser.setAvatar(userDetails.getAvatar());
         }
+        if (userDetails.getUltimaModificacao() != null) {
+            updatedUser.setUltimaModificacao(userDetails.getUltimaModificacao());
+        }
 
         updatedUser.setUltimaModificacao(LocalDateTime.now());
 
