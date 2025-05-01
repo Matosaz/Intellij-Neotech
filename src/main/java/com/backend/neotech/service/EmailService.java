@@ -32,7 +32,7 @@ public class EmailService {
                 + "<p>Utilize o código abaixo para continuar com o processo de recuperação:</p><div class=\"code\">🔐 Código de recuperação: "
                 + code + "</div><p>Este código é válido por 10 minutos.</p><p>Se você não solicitou a recuperação de senha, por favor, ignore este e-mail.</p>"
                 + "<p>Atenciosamente,</p><p>Equipe NeoTech</p></div><div class=\"footer\"><p>&copy; 2025 NeoTech. Todos os direitos reservados.</p>"
-                + "<p><a href=\"https://www.neotech.com.br\">Visite nosso site</a></p></div></div></body></html>";
+                + "<p><a href=\"https://neotechgroup.netlify.app\">Visite nosso site</a></p></div></div></body></html>";
 
         try {
             // Criando um MimeMessage
