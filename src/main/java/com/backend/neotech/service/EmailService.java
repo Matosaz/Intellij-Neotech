@@ -21,7 +21,7 @@ public class EmailService {
                 + "<head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Recuperação de Senha - NeoTech</title><style>"
                 + "body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }"
                 + ".email-container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); overflow: hidden; }"
-                + ".email-header { background-color: #007BFF; color: #fff; text-align: center; padding: 20px; }"
+                + ".email-header { background-color: #5faa84; color: #fff; text-align: center; padding: 20px; }"
                 + ".email-body { padding: 20px; }"
                 + ".code { font-size: 20px; font-weight: bold; color: #5faa84; padding: 10px; background-color: #f1f1f1; border-radius: 4px; margin: 20px 0; }"
                 + ".footer { background-color: #f9f9f9; text-align: center; padding: 10px; font-size: 12px; color: #777; }"
