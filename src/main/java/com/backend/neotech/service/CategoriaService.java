@@ -35,4 +35,9 @@ public class CategoriaService {
             return categoriaRepository.save(categoria);
         }).orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
     }
+
+    public void deleteCategoria(Long id) {
+        categoriaRepository.deleteById(id);
+    }
+
 }

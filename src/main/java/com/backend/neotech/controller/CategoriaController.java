@@ -1,5 +1,6 @@
 package com.backend.neotech.controller;
 
+import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.model.Categoria;
 import com.backend.neotech.service.CategoriaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,5 +38,14 @@ public class CategoriaController {
         return categoriaService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCategoria(@PathVariable(value = "id") String id) {
+        try {
+            categoriaService.deleteCategoria(Long.parseLong(id));
+            return ResponseEntity.noContent().build();
+        } catch (NumberFormatException ex) {
+            throw new BadRequest("'" + id + "' não é um número inteiro válido. Por favor, forneça um valor inteiro, como 10.");
+        }
     }
 }
