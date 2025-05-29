@@ -1,4 +1,5 @@
 package com.backend.neotech.model;
+import com.backend.neotech.model.Categoria;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
