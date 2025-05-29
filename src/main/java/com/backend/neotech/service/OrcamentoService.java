@@ -31,4 +31,8 @@ public class OrcamentoService {
     public List<Orcamento> getOrcamentosByUsuario(Long usuarioId) {
         return orcamentoRepository.findByUsuario_Id(usuarioId);
     }
+    public List<Orcamento> getOrcamentosByCategoria(Long categoriaId) {
+        return orcamentoRepository.findByCategoria_Id(categoriaId);
+    }
+
 }

@@ -20,6 +20,10 @@ public class Orcamento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.EAGER)  // eager para já trazer categoria quando buscar orçamento
+    @JoinColumn(name = "id_categoria", nullable = true)  // ou false, se obrigatório
+    private Categoria categoria;
+
     @Column(nullable = false, name = "hora_coleta")
     private Time horaColeta;
 
