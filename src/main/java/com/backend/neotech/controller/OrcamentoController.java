@@ -1,5 +1,6 @@
 package com.backend.neotech.controller;
 
+import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.model.Orcamento;
 import com.backend.neotech.model.User;
 import com.backend.neotech.repository.UserRepository;
@@ -139,6 +140,15 @@ public class OrcamentoController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Erro ao atualizar o orçamento."));
+        }
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrcamento(@PathVariable(value = "id") String id) {
+        try {
+            orcamentoService.deleteOrcamento(Long.parseLong(id));
+            return ResponseEntity.noContent().build();
+        } catch (NumberFormatException ex) {
+            throw new BadRequest("'" + id + "' não é um número inteiro válido. Por favor, forneça um valor inteiro, como 10.");
         }
     }
 }

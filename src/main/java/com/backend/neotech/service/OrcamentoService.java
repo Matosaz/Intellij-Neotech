@@ -40,5 +40,8 @@ public class OrcamentoService {
     public Optional<Orcamento> buscarPorId(Long id) {
         return orcamentoRepository.findById(id);
     }
+    public void deleteOrcamento(Long id) {
+        orcamentoRepository.deleteById(id);
+    }
 
 }
