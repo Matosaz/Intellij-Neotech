@@ -93,4 +93,54 @@ public class OrcamentoController {
         }
         return ResponseEntity.ok(orcamentos);
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<String> atualizarOrcamento(@PathVariable Long id, @RequestBody Orcamento orcamentoAtualizado) {
+        Optional<Orcamento> orcamentoExistenteOpt = orcamentoService.buscarPorId(id);
+
+        if (!orcamentoExistenteOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Orçamento não encontrado.");
+        }
+
+        // Validações básicas
+        if (orcamentoAtualizado.getMetodoContato() == null || orcamentoAtualizado.getMetodoContato().isEmpty()) {
+            return ResponseEntity.badRequest().body("Método de contato é obrigatório.");
+        }
+        if (orcamentoAtualizado.getHoraColeta() == null) {
+            return ResponseEntity.badRequest().body("Hora da coleta é obrigatória.");
+        }
+        if (orcamentoAtualizado.getDataColeta() == null) {
+            return ResponseEntity.badRequest().body("Data da coleta é obrigatória.");
+        }
+        if (orcamentoAtualizado.getAceitaContato() == null) {
+            return ResponseEntity.badRequest().body("Aceite de contato é obrigatório.");
+        }
+        if (orcamentoAtualizado.getUsuario() == null || orcamentoAtualizado.getUsuario().getId() == null) {
+            return ResponseEntity.badRequest().body("Usuário inválido ou não fornecido.");
+        }
+
+        Optional<User> usuarioOptional = userRepository.findById(orcamentoAtualizado.getUsuario().getId());
+        if (!usuarioOptional.isPresent()) {
+            return ResponseEntity.badRequest().body("Usuário não encontrado.");
+        }
+
+        try {
+            Orcamento orcamentoExistente = orcamentoExistenteOpt.get();
+
+            // Atualiza os campos permitidos
+            orcamentoExistente.setMetodoContato(orcamentoAtualizado.getMetodoContato());
+            orcamentoExistente.setHoraColeta(orcamentoAtualizado.getHoraColeta());
+            orcamentoExistente.setDataColeta(orcamentoAtualizado.getDataColeta());
+            orcamentoExistente.setAceitaContato(orcamentoAtualizado.getAceitaContato());
+            orcamentoExistente.setCategoria(orcamentoAtualizado.getCategoria());
+            orcamentoExistente.setUsuario(usuarioOptional.get());
+
+            orcamentoService.salvarOrcamento(orcamentoExistente);
+
+            return ResponseEntity.ok("Orçamento atualizado com sucesso.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar o orçamento.");
+        }
+    }
+
 }

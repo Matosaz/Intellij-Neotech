@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrcamentoService {
@@ -33,6 +34,9 @@ public class OrcamentoService {
     }
     public List<Orcamento> getOrcamentosByCategoria(Long categoriaId) {
         return orcamentoRepository.findByCategoria_Id(categoriaId);
+    }
+    public Optional<Orcamento> buscarPorId(Long id) {
+        return orcamentoRepository.findById(id);
     }
 
 }
