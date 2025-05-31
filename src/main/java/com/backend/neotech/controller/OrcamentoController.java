@@ -114,14 +114,6 @@ public class OrcamentoController {
         if (orcamentoAtualizado.getAceitaContato() == null) {
             return ResponseEntity.badRequest().body("Aceite de contato é obrigatório.");
         }
-        if (orcamentoAtualizado.getUsuario() == null || orcamentoAtualizado.getUsuario().getId() == null) {
-            return ResponseEntity.badRequest().body("Usuário inválido ou não fornecido.");
-        }
-
-        Optional<User> usuarioOptional = userRepository.findById(orcamentoAtualizado.getUsuario().getId());
-        if (!usuarioOptional.isPresent()) {
-            return ResponseEntity.badRequest().body("Usuário não encontrado.");
-        }
 
         try {
             Orcamento orcamentoExistente = orcamentoExistenteOpt.get();
@@ -132,7 +124,6 @@ public class OrcamentoController {
             orcamentoExistente.setDataColeta(orcamentoAtualizado.getDataColeta());
             orcamentoExistente.setAceitaContato(orcamentoAtualizado.getAceitaContato());
             orcamentoExistente.setCategoria(orcamentoAtualizado.getCategoria());
-            orcamentoExistente.setUsuario(usuarioOptional.get());
 
             orcamentoService.salvarOrcamento(orcamentoExistente);
 
