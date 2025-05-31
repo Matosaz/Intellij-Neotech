@@ -132,9 +132,8 @@ public class OrcamentoController {
             orcamentoExistente.setHoraColeta(orcamentoAtualizado.getHoraColeta());
             orcamentoExistente.setDataColeta(orcamentoAtualizado.getDataColeta());
             orcamentoExistente.setAceitaContato(orcamentoAtualizado.getAceitaContato());
-            orcamentoExistente.setCategoria(orcamentoAtualizado.getCategoria());
+            orcamentoExistente.setCategorias(orcamentoAtualizado.getCategorias());
 
-            orcamentoService.salvarOrcamento(orcamentoExistente);
 
             return ResponseEntity.ok(Map.of("message", "Orçamento atualizado com sucesso!"));
         } catch (Exception e) {

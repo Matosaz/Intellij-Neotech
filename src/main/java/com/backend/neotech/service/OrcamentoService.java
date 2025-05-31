@@ -33,7 +33,7 @@ public class OrcamentoService {
         return orcamentoRepository.findByUsuario_Id(usuarioId);
     }
     public List<Orcamento> getOrcamentosByCategoria(Long categoriaId) {
-        return orcamentoRepository.findByCategoria_Id(categoriaId);
+        return orcamentoRepository.findByCategorias_Id(categoriaId);
     }
     public Optional<Orcamento> buscarPorId(Long id) {
         return orcamentoRepository.findById(id);

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Table(name = "orcamento")
 @Data
@@ -21,9 +22,14 @@ public class Orcamento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)  // eager para já trazer categoria quando buscar orçamento
-    @JoinColumn(name = "id_categoria", nullable = true)  // ou false, se obrigatório
-    private Categoria categoria;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "orcamento_categorias",
+            joinColumns = @JoinColumn(name = "orcamento_id"),
+            inverseJoinColumns = @JoinColumn(name = "categoria_id")
+    )
+    private List<Categoria> categorias;
+
 
     @Column(nullable = false, name = "hora_coleta")
     private Time horaColeta;
