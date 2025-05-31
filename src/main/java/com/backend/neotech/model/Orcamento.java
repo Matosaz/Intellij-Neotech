@@ -40,8 +40,7 @@ public class Orcamento {
     @Column(nullable = false, name = "coleta_gerada_em")
     private LocalDateTime coletaGeradaEm;
 
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)  // eager para já trazer categoria quando buscar orçamento
     @JoinColumn(name ="id_usuario", referencedColumnName = "id")
     private User usuario;
     @PrePersist

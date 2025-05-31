@@ -13,6 +13,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -84,7 +85,6 @@ public class OrcamentoController {
         return ResponseEntity.ok(orcamentos);
     }
 
-    // Novo endpoint para listar orçamentos por categoria
     @GetMapping("/categoria/{categoriaId}")
     public ResponseEntity<List<Orcamento>> getOrcamentosByCategoria(@PathVariable Long categoriaId) {
         List<Orcamento> orcamentos = orcamentoService.getOrcamentosByCategoria(categoriaId);
@@ -93,26 +93,35 @@ public class OrcamentoController {
         }
         return ResponseEntity.ok(orcamentos);
     }
+
     @PutMapping("/{id}")
-    public ResponseEntity<String> atualizarOrcamento(@PathVariable Long id, @RequestBody Orcamento orcamentoAtualizado) {
+    public ResponseEntity<Map<String, String>> atualizarOrcamento(
+            @PathVariable Long id,
+            @RequestBody Orcamento orcamentoAtualizado) {
+
         Optional<Orcamento> orcamentoExistenteOpt = orcamentoService.buscarPorId(id);
 
         if (!orcamentoExistenteOpt.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Orçamento não encontrado.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Orçamento não encontrado."));
         }
 
         // Validações básicas
         if (orcamentoAtualizado.getMetodoContato() == null || orcamentoAtualizado.getMetodoContato().isEmpty()) {
-            return ResponseEntity.badRequest().body("Método de contato é obrigatório.");
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Método de contato é obrigatório."));
         }
         if (orcamentoAtualizado.getHoraColeta() == null) {
-            return ResponseEntity.badRequest().body("Hora da coleta é obrigatória.");
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Hora da coleta é obrigatória."));
         }
         if (orcamentoAtualizado.getDataColeta() == null) {
-            return ResponseEntity.badRequest().body("Data da coleta é obrigatória.");
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Data da coleta é obrigatória."));
         }
         if (orcamentoAtualizado.getAceitaContato() == null) {
-            return ResponseEntity.badRequest().body("Aceite de contato é obrigatório.");
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Aceite de contato é obrigatório."));
         }
 
         try {
@@ -127,10 +136,11 @@ public class OrcamentoController {
 
             orcamentoService.salvarOrcamento(orcamentoExistente);
 
-            return ResponseEntity.ok("Orçamento atualizado com sucesso.");
+            return ResponseEntity.ok(Map.of("message", "Orçamento atualizado com sucesso!"));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar o orçamento.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erro ao atualizar o orçamento."));
         }
     }
 
