@@ -123,17 +123,16 @@ public class OrcamentoController {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "Aceite de contato é obrigatório."));
         }
-
         try {
             Orcamento orcamentoExistente = orcamentoExistenteOpt.get();
 
-            // Atualiza os campos permitidos
             orcamentoExistente.setMetodoContato(orcamentoAtualizado.getMetodoContato());
             orcamentoExistente.setHoraColeta(orcamentoAtualizado.getHoraColeta());
             orcamentoExistente.setDataColeta(orcamentoAtualizado.getDataColeta());
             orcamentoExistente.setAceitaContato(orcamentoAtualizado.getAceitaContato());
             orcamentoExistente.setCategorias(orcamentoAtualizado.getCategorias());
 
+            orcamentoService.salvarOrcamento(orcamentoExistente);
 
             return ResponseEntity.ok(Map.of("message", "Orçamento atualizado com sucesso!"));
         } catch (Exception e) {
@@ -142,5 +141,4 @@ public class OrcamentoController {
                     .body(Map.of("message", "Erro ao atualizar o orçamento."));
         }
     }
-
 }

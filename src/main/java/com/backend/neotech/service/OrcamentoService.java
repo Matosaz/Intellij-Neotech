@@ -27,14 +27,16 @@ public class OrcamentoService {
     public List<Orcamento> listarOrcamentos() {
         return orcamentoRepository.findAll();
     }
-
-    // Método para listar orçamentos por usuário
+    // Busca orçamentos por usuário com categorias carregadas
     public List<Orcamento> getOrcamentosByUsuario(Long usuarioId) {
-        return orcamentoRepository.findByUsuario_Id(usuarioId);
+        return orcamentoRepository.findByUsuarioIdWithCategorias(usuarioId);
     }
+
+    // Busca orçamentos por categoria com categorias carregadas
     public List<Orcamento> getOrcamentosByCategoria(Long categoriaId) {
-        return orcamentoRepository.findByCategorias_Id(categoriaId);
+        return orcamentoRepository.findByCategoriaIdWithCategorias(categoriaId);
     }
+
     public Optional<Orcamento> buscarPorId(Long id) {
         return orcamentoRepository.findById(id);
     }
