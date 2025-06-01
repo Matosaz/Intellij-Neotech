@@ -132,6 +132,12 @@ public class OrcamentoController {
             orcamentoExistente.setDataColeta(orcamentoAtualizado.getDataColeta());
             orcamentoExistente.setAceitaContato(orcamentoAtualizado.getAceitaContato());
             orcamentoExistente.setCategorias(orcamentoAtualizado.getCategorias());
+            orcamentoExistente.setCep(orcamentoAtualizado.getCep());
+            orcamentoExistente.setEndereco(orcamentoAtualizado.getEndereco());
+            orcamentoExistente.setNumero(orcamentoAtualizado.getNumero());
+            orcamentoExistente.setBairro(orcamentoAtualizado.getBairro());
+            orcamentoExistente.setCidade(orcamentoAtualizado.getCidade());
+            orcamentoExistente.setEstado(orcamentoAtualizado.getEstado());
 
             orcamentoService.salvarOrcamento(orcamentoExistente);
 

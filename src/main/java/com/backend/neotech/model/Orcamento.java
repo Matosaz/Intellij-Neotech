@@ -46,6 +46,27 @@ public class Orcamento {
     @Column(nullable = false, name = "coleta_gerada_em")
     private LocalDateTime coletaGeradaEm;
 
+    @Column(nullable = true)
+    private String telefone;
+
+    @Column(nullable = true)
+    private String cep;
+
+    @Column(nullable = true)
+    private String endereco;
+
+    @Column(nullable = true)
+    private String bairro;
+
+    @Column(nullable = true)
+    private String numero;
+
+    @Column(nullable = true)
+    private String cidade;
+
+    @Column(nullable = true)
+    private String estado;
+
     @ManyToOne(fetch = FetchType.EAGER)  // eager para já trazer categoria quando buscar orçamento
     @JoinColumn(name ="id_usuario", referencedColumnName = "id")
     private User usuario;
