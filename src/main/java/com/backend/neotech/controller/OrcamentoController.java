@@ -139,6 +139,7 @@ public class OrcamentoController {
             orcamentoExistente.setCidade(orcamentoAtualizado.getCidade());
             orcamentoExistente.setEstado(orcamentoAtualizado.getEstado());
             orcamentoExistente.setTelefone(orcamentoAtualizado.getTelefone());
+            orcamentoExistente.setCodStatus(orcamentoAtualizado.getCodStatus());
 
 
             orcamentoService.salvarOrcamento(orcamentoExistente);

@@ -67,6 +67,9 @@ public class Orcamento {
     @Column(nullable = true)
     private String estado;
 
+    @Column(name = "cod_status", nullable = false)
+    private String codStatus = "ATIVO"; // Valor padrão
+
     @ManyToOne(fetch = FetchType.EAGER)  // eager para já trazer categoria quando buscar orçamento
     @JoinColumn(name ="id_usuario", referencedColumnName = "id")
     private User usuario;

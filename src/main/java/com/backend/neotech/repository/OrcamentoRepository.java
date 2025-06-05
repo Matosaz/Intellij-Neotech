@@ -24,4 +24,5 @@ public interface OrcamentoRepository extends JpaRepository<Orcamento, Long> {
     @Query("SELECT DISTINCT o FROM Orcamento o LEFT JOIN FETCH o.categorias")
     List<Orcamento> findAllWithCategorias();
 
+    List<Orcamento> findByCategoriasId(Long categoriaId);
 }
