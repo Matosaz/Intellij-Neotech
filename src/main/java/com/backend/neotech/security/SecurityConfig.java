@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.Customizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpMethod;
 
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -33,10 +34,8 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())  // habilita cors (usará corsConfigurationSource)
                 .csrf(csrf -> csrf.disable())     // desabilita CSRF (útil para API REST)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                new AntPathRequestMatcher("/api/v1/users/login"),
-                                new AntPathRequestMatcher("/api/v1/users")
-                        ).permitAll()
+                        .requestMatchers("/api/v1/users/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/**").permitAll()
                         .anyRequest().authenticated()
                 );
         // aqui você adiciona filtros de autenticação, se tiver (JWT, etc.)
