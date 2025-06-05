@@ -20,7 +20,7 @@ public class CategoriaController {
     public CategoriaController(CategoriaService categoriaService) {
         this.categoriaService = categoriaService;
     }
-
+//Teste
     @PostMapping
     public ResponseEntity<Categoria> criarCategoria(@RequestBody Categoria categoria) {
         Categoria novaCategoria = categoriaService.salvarCategoria(categoria);
