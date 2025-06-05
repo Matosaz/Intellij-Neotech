@@ -55,11 +55,12 @@ public class UserService {
     public void updatePassword(String email, String newPassword) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFound("Usuário com email " + email + " não encontrado."));
-        user.setSenha(newPassword);
+        user.setSenha(passwordEncoder.encode(newPassword)); // ✅ Corrigido
         userRepository.save(user);
 
-        resetCodeService.removeResetCode(email); // remove do banco após uso
+        resetCodeService.removeResetCode(email);
     }
+
 
     @Autowired
     private UserRepository userRepository;
