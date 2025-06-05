@@ -43,7 +43,7 @@ public class SecurityConfig {
 
         return http.build();
     }
-
+//Teste
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
