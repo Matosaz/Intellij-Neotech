@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 @Service
@@ -44,6 +45,10 @@ public class UserService {
     }
 
     // Atualiza a senha do usuário
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Autowired
     private ResetCodeService resetCodeService;
 
@@ -100,9 +105,10 @@ public class UserService {
         if (userDetails.getEmail() != null) {
             updatedUser.setEmail(userDetails.getEmail());
         }
-        if (userDetails.getSenha() != null) {
-            updatedUser.setSenha(userDetails.getSenha());
+        if (userDetails.getSenha() != null && !userDetails.getSenha().isBlank()) {
+            updatedUser.setSenha(passwordEncoder.encode(userDetails.getSenha()));
         }
+
         if (userDetails.getCodStatus() != null) {
             updatedUser.setCodStatus(userDetails.getCodStatus());
         }

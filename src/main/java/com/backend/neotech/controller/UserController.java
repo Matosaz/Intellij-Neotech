@@ -12,6 +12,7 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
@@ -20,6 +21,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
+    private final PasswordEncoder passwordEncoder;
 
     private final ResetCodeService resetCodeService;
     private final ResetCodeRepository resetCodeRepository;
@@ -27,7 +29,8 @@ public class UserController {
     private final UserRepository userRepository;
     private final EmailService emailService;
 
-    public UserController(ResetCodeRepository resetCodeRepository,ResetCodeService resetCodeService, UserService userService, UserRepository userRepository, EmailService emailService) {
+    public UserController(PasswordEncoder passwordEncoder, ResetCodeRepository resetCodeRepository, ResetCodeService resetCodeService, UserService userService, UserRepository userRepository, EmailService emailService) {
+        this.passwordEncoder = passwordEncoder;
         this.resetCodeRepository = resetCodeRepository;
         this.userService = userService;
         this.userRepository = userRepository;
@@ -41,7 +44,7 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody User loginUser) {
         Optional<User> userOpt = userService.getUserByEmail(loginUser.getEmail());
 
-        if (userOpt.isPresent() && userOpt.get().getSenha().equals(loginUser.getSenha())) {
+        if (userOpt.isPresent() && passwordEncoder.matches(loginUser.getSenha(), userOpt.get().getSenha())) {
             Map<String, String> response = new HashMap<>();
             response.put("message", "Login bem-sucedido!");
             response.put("id", String.valueOf(userOpt.get().getId()));
@@ -146,6 +149,7 @@ public class UserController {
     // Criar um novo usuário
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
+        user.setSenha(passwordEncoder.encode(user.getSenha())); // Criptografar senha
         URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/users").toUriString());
         return ResponseEntity.created(uri).body(userService.createUser(user));
     }
