@@ -140,9 +140,10 @@ public class UserService {
         if (userDetails.getAvatar() != null) {
             updatedUser.setAvatar(userDetails.getAvatar());
         }
-        if (userDetails.isAdmin() != updatedUser.isAdmin()) {
-            updatedUser.setAdmin(userDetails.isAdmin());
+        if (userDetails.getAdmin() != null) {
+            updatedUser.setAdmin(userDetails.getAdmin());
         }
+
 
 
         updatedUser.setUltimaModificacao(LocalDateTime.now());

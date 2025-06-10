@@ -22,7 +22,7 @@ import java.util.*;
 @RequestMapping("/api/v1/users")
 public class UserController {
     private final PasswordEncoder passwordEncoder;
-
+//Corrigido
     private final ResetCodeService resetCodeService;
     private final ResetCodeRepository resetCodeRepository;
     private final UserService userService;
@@ -50,7 +50,7 @@ public class UserController {
             response.put("id", String.valueOf(userOpt.get().getId()));
             response.put("nome", userOpt.get().getNome());
             response.put("email", userOpt.get().getEmail());
-            response.put("isAdmin", String.valueOf(userOpt.get().isAdmin()));
+            response.put("isAdmin", String.valueOf(userOpt.get().getAdmin()));
 
             return ResponseEntity.ok().body(response);
         } else {
@@ -155,22 +155,22 @@ public class UserController {
     }
 
     // Atualizar um usuário existente
-    @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<User> updateUserMultipart(
             @PathVariable(value = "id") String id,
             @RequestPart("data") String userDetailsJson,
             @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) {
+
         try {
             User user = userService.getUserById(Long.valueOf(id));
             ObjectMapper objectMapper = new ObjectMapper();
             User userDetails = objectMapper.readValue(userDetailsJson, User.class);
 
-            // Se um avatar for enviado como arquivo, processa-o
             if (avatarFile != null && !avatarFile.isEmpty()) {
                 if (!avatarFile.getContentType().startsWith("image/")) {
                     throw new BadRequest("O arquivo enviado não é uma imagem válida.");
                 }
-                userDetails.setAvatar(avatarFile.getBytes()); // Armazena o avatar como byte[]
+                userDetails.setAvatar(avatarFile.getBytes());
             }
 
             User updatedUser = userService.updateUser(Long.parseLong(id), userDetails);
@@ -178,9 +178,31 @@ public class UserController {
         } catch (NumberFormatException ex) {
             throw new BadRequest("'" + id + "' não é um número inteiro válido.");
         } catch (Exception ex) {
-            throw new RuntimeException("Erro ao atualizar o usuário: " + ex.getMessage());
+            throw new RuntimeException("Erro ao atualizar o usuário (web): " + ex.getMessage());
         }
     }
+    @PutMapping(value = "/{id}", consumes = "application/json")
+    public ResponseEntity<User> updateUserJson(
+            @PathVariable(value = "id") String id,
+            @RequestBody User userDetails) {
+
+        try {
+            User user = userService.getUserById(Long.valueOf(id));
+
+            // Preserva o avatar existente se não for enviado
+            if (userDetails.getAvatar() == null) {
+                userDetails.setAvatar(user.getAvatar());
+            }
+
+            User updatedUser = userService.updateUser(Long.parseLong(id), userDetails);
+            return ResponseEntity.ok(updatedUser);
+        } catch (NumberFormatException ex) {
+            throw new BadRequest("'" + id + "' não é um número inteiro válido.");
+        } catch (Exception ex) {
+            throw new RuntimeException("Erro ao atualizar o usuário (Flutter): " + ex.getMessage());
+        }
+    }
+
 
     // Deletar um usuário
     @DeleteMapping("/{id}")

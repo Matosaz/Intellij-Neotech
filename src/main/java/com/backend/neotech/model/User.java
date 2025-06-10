@@ -66,6 +66,6 @@ public class User {
     private String codStatus = "ATIVO"; // Valor padrão
 
     @Column(name = "is_Admin", nullable = false) // Ajuste no nome da coluna
-    private boolean admin = false; // Valor padrão
+    private Boolean admin = false; // Valor padrão
 
 }
