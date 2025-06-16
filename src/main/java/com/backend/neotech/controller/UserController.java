@@ -134,6 +134,8 @@ public class UserController {
             response.put("ultimaModificacao", user.getUltimaModificacao());
             response.put("cpf", user.getCpf());
             response.put("data_nascimento", user.getData_nascimento()); //Testemos para verificar se funcionará
+            response.put("data_criacao", user.getDataCriacao()); //Testemos para verificar se funcionará
+
 
 
 
