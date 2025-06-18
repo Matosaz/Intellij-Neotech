@@ -1,4 +1,6 @@
 package com.backend.neotech.controller;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.model.User;
@@ -8,6 +10,7 @@ import com.backend.neotech.service.EmailService;
 import com.backend.neotech.service.ResetCodeService;
 import com.backend.neotech.service.UserService;
 import com.fasterxml.jackson.databind.MapperFeature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
@@ -156,6 +159,8 @@ public class UserController {
         URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/users").toUriString());
         return ResponseEntity.created(uri).body(userService.createUser(user));
     }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     // Atualizar um usuário existente
     @PutMapping(value = "/{id}", consumes = "multipart/form-data")
@@ -163,8 +168,7 @@ public class UserController {
             @PathVariable(value = "id") String id,
             @RequestPart("data") String userDetailsJson,
             @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        // Configure para aceitar isAdmin
+
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
 
         try {
