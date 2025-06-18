@@ -142,10 +142,9 @@ public class UserService {
         }
         if (userDetails.getAdmin() != null) {
             updatedUser.setAdmin(userDetails.getAdmin());
+        } else{
+            updatedUser.setAdmin(updatedUser.getAdmin());
         }
-
-
-
         updatedUser.setUltimaModificacao(LocalDateTime.now());
 
         return userRepository.save(updatedUser);

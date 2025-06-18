@@ -32,7 +32,7 @@ public class User {
 
     @Column(nullable = true)
     private Date data_nascimento;
-    @Column(nullable = true, name = "data_criacao")
+    @Column(nullable = false, name = "data_criacao")
     private LocalDateTime dataCriacao;
 
     @Column(nullable = true)
