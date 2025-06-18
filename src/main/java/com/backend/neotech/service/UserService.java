@@ -4,6 +4,9 @@ import com.backend.neotech.model.User;
 import com.backend.neotech.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -92,67 +95,72 @@ public class UserService {
     }
 
     //gênero inserido
+    // No UserService.java
 
     public User updateUser(Long id, User userDetails) {
-        User updatedUser = userRepository.findById(id)
+        User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new NotFound("Usuário com ID " + id + " não encontrado."));
 
-        if (userDetails.getNome() != null) {
-            updatedUser.setNome(userDetails.getNome());
-        }
-        if (userDetails.getGenero() != null) {
-            updatedUser.setGenero(userDetails.getGenero());
-        }
-        if (userDetails.getEmail() != null) {
-            updatedUser.setEmail(userDetails.getEmail());
-        }
-        if (userDetails.getSenha() != null && !userDetails.getSenha().isBlank()) {
-            updatedUser.setSenha(passwordEncoder.encode(userDetails.getSenha()));
-        }
+        // --- Início dos logs para depuração (Mantenha se ainda tiver dúvidas) ---
+        System.out.println("--- DEBUG INÍCIO UPDATE USER ---");
+        System.out.println("Existing User Admin ANTES da atualização: " + existingUser.getAdmin());
+        System.out.println("User Details Admin Recebido na Requisição: " + userDetails.getAdmin());
+        // --- Fim dos logs ---
 
-        if (userDetails.getCodStatus() != null) {
-            updatedUser.setCodStatus(userDetails.getCodStatus());
-        }
-        if (userDetails.getCpf() != null) {
-            updatedUser.setCpf(userDetails.getCpf());  // Campo CPF
-        }
-        if (userDetails.getCep() != null) {
-            updatedUser.setCep(userDetails.getCep());  // Campo CEP
-        }
-        if (userDetails.getTelefone() != null) {
-            updatedUser.setTelefone(userDetails.getTelefone());  // Campo telefone
-        }
-        if (userDetails.getEndereco() != null) {
-            updatedUser.setEndereco(userDetails.getEndereco());  // Campo endereço
-        }
-        if (userDetails.getCidade() != null) {
-            updatedUser.setCidade(userDetails.getCidade());  // Campo cidade
-        }
-        if (userDetails.getBairro() != null) {
-            updatedUser.setBairro(userDetails.getBairro());  // Campo bairro
-        }
-        if (userDetails.getEstado() != null) {
-            updatedUser.setEstado(userDetails.getEstado());  // Campo estado
-        }
-        if (userDetails.getData_nascimento() != null) {
-            updatedUser.setData_nascimento(userDetails.getData_nascimento());  // Data de nascimento
-        }
-        if (userDetails.getAvatar() != null) {
-            updatedUser.setAvatar(userDetails.getAvatar());
-        }
+        // Lista de campos que podem ser atualizados
+        List<String> updatableFields = Arrays.asList(
+                "nome", "email", "cpf", "telefone", "cep",
+                "endereco", "cidade", "bairro", "estado",
+                "data_nascimento", "genero", "avatar" // Remova "isAdmin" daqui, vamos tratá-lo separadamente
+        );
+
+        // Itera e atualiza apenas os campos permitidos, se não forem nulos no userDetails
+        updatableFields.forEach(field -> {
+            try {
+                Method getter = User.class.getMethod("get" + capitalize(field));
+                Method setter = User.class.getMethod("set" + capitalize(field), getter.getReturnType());
+
+                Object newValue = getter.invoke(userDetails);
+                if (newValue != null) { // Só atualiza se o novo valor não for nulo
+                    setter.invoke(existingUser, newValue);
+                }
+            } catch (Exception e) {
+                // É uma boa prática logar exceções aqui, mas sem lançá-las para não interromper a atualização
+                System.err.println("Erro ao refletir campo " + field + ": " + e.getMessage());
+            }
+        });
+
+        // TRATAMENTO ESPECÍFICO PARA O CAMPO 'ADMIN'
+        // Este é o ponto chave: só alteramos se o valor veio na requisição (não é null)
         if (userDetails.getAdmin() != null) {
-            updatedUser.setAdmin(userDetails.getAdmin());
-        } else{
-            updatedUser.setAdmin(updatedUser.getAdmin());
+            existingUser.setAdmin(userDetails.getAdmin());
+            System.out.println("Existing User Admin APÓS SET (admin explicitamente enviado): " + existingUser.getAdmin());
+        } else {
+            // Se userDetails.getAdmin() for null, significa que o campo NÃO FOI ENVIADO
+            // na requisição, e, portanto, o valor existente de existingUser.admin
+            // não é alterado.
+            System.out.println("User Details Admin é null, mantendo o valor existente: " + existingUser.getAdmin());
         }
-        updatedUser.setUltimaModificacao(LocalDateTime.now());
 
-        return userRepository.save(updatedUser);
+        // Atualiza a data de última modificação
+        existingUser.setUltimaModificacao(LocalDateTime.now());
 
+        User updatedUser = userRepository.save(existingUser);
 
+        // --- Continuação dos logs para depuração ---
+        System.out.println("Existing User Admin APÓS SAVE: " + updatedUser.getAdmin());
+        System.out.println("--- DEBUG FIM UPDATE USER ---");
+        // --- Fim dos logs ---
+
+        return updatedUser;
     }
 
-
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);

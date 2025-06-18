@@ -7,6 +7,7 @@ import com.backend.neotech.repository.UserRepository;
 import com.backend.neotech.service.EmailService;
 import com.backend.neotech.service.ResetCodeService;
 import com.backend.neotech.service.UserService;
+import com.fasterxml.jackson.databind.MapperFeature;
 import org.springframework.http.HttpStatus;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
@@ -162,10 +163,12 @@ public class UserController {
             @PathVariable(value = "id") String id,
             @RequestPart("data") String userDetailsJson,
             @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Configure para aceitar isAdmin
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
 
         try {
             User user = userService.getUserById(Long.valueOf(id));
-            ObjectMapper objectMapper = new ObjectMapper();
             User userDetails = objectMapper.readValue(userDetailsJson, User.class);
 
             if (avatarFile != null && !avatarFile.isEmpty()) {
@@ -183,6 +186,19 @@ public class UserController {
             throw new RuntimeException("Erro ao atualizar o usuário (web): " + ex.getMessage());
         }
     }
+
+    @PutMapping(value = "/test-update/{id}", consumes = "application/json")
+    public ResponseEntity<?> testUpdateUserJson(
+            @PathVariable(value = "id") String id,
+            @RequestBody Map<String, Object> payload) { // Use Map para ver o JSON cru
+
+        System.out.println("--- TESTE DE PAYLOAD ---");
+        System.out.println("Payload recebido (como Map): " + payload);
+        System.out.println("Valor de 'admin' no payload (se existir): " + payload.get("admin"));
+        System.out.println("--- FIM TESTE DE PAYLOAD ---");
+
+        return ResponseEntity.ok(payload); // Apenas retorne o payload para inspeção
+    }
     @PutMapping(value = "/{id}", consumes = "application/json")
     public ResponseEntity<User> updateUserJson(
             @PathVariable(value = "id") String id,
@@ -190,6 +206,7 @@ public class UserController {
 
         try {
             User user = userService.getUserById(Long.valueOf(id));
+            System.out.println("Dados recebidos: " + userDetails); // Log importante
 
             // Preserva o avatar existente se não for enviado
             if (userDetails.getAvatar() == null) {
