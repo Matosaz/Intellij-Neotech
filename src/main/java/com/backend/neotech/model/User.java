@@ -67,7 +67,7 @@ public class User {
     @Column(name = "cod_status", nullable = false)
     private String codStatus = "ATIVO"; // Valor padrão
 
-    @Column(name = "is_admin", nullable = false) // Ajuste no nome da coluna
+    @Column(name = "is_admin", nullable = true) // Ajuste no nome da coluna
     private Boolean admin ; // Valor padrão
 
 
