@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDateTime;
@@ -62,7 +63,13 @@ public class Orcamento {
     private String numero;
 
     @Column(nullable = true)
+    private Long pontos;
+
+    @Column(nullable = true)
     private String cidade;
+
+    @Column(name = "quantidade_kg", precision = 10, scale = 2, nullable = false)
+    private BigDecimal quantidadeKg;
 
     @Column(nullable = true)
     private String estado;
