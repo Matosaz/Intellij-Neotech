@@ -76,9 +76,6 @@ public class Orcamento {
     @Column(name = "cod_status", nullable = false)
     private String codStatus = "Em andamento"; // Valor padrão
 
-    @OneToMany(mappedBy = "orcamento", cascade = CascadeType.ALL)
-    private List<ItemOrcamento> itens;
-
     @ManyToOne(fetch = FetchType.EAGER)  // eager para já trazer categoria quando buscar orçamento
     @JoinColumn(name ="id_usuario", referencedColumnName = "id")
     private User usuario;
