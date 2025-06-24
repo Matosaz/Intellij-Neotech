@@ -53,7 +53,7 @@ public class User {
     @Column(nullable = true)
     private String estado;
 
-    @Column(name = "ultima_modificacao")
+    @Column(name = "ultima_modificacao", nullable = true)
     private LocalDateTime ultimaModificacao;
 
     //gênero
