@@ -4,6 +4,7 @@ import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.model.Orcamento;
 import com.backend.neotech.model.User;
 import com.backend.neotech.repository.UserRepository;
+import com.backend.neotech.service.EmailService;
 import com.backend.neotech.service.OrcamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,8 @@ public class OrcamentoController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EmailService emailService;
 
     private final OrcamentoService orcamentoService;
 
@@ -62,6 +65,21 @@ public class OrcamentoController {
                     .path("/{id}")
                     .buildAndExpand(savedOrcamento.getId())
                     .toUri();
+
+            User user = usuarioOptional.get();
+            emailService.enviarConfirmacaoOrcamento(
+                    user.getEmail(),
+                    user.getNome(),
+                    savedOrcamento.getDataColeta(),
+                    savedOrcamento.getHoraColeta(),
+                    savedOrcamento.getEndereco(),
+                    savedOrcamento.getNumero(),
+                    savedOrcamento.getBairro(),
+                    savedOrcamento.getCidade(),
+                    savedOrcamento.getEstado()
+            );
+
+
             return ResponseEntity.created(location).body("Orçamento criado com sucesso.");
         } catch (Exception e) {
             e.printStackTrace();
