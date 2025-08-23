@@ -62,6 +62,9 @@ public class Orcamento {
     private String numero;
 
     @Column(nullable = true)
+    private Double valorTotal;
+
+    @Column(nullable = true)
     private Long pontos;
 
     @Column(nullable = true)

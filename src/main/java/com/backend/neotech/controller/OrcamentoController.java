@@ -11,7 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
+import javax.imageio.ImageIO;
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +34,72 @@ public class OrcamentoController {
     public OrcamentoController(OrcamentoService orcamentoService) {
         this.orcamentoService = orcamentoService;
     }
+
+    // Endpoint para gerar PIX
+    @GetMapping("/{id}/pix")
+    public ResponseEntity<?> gerarPix(@PathVariable Long id) {
+        Optional<Orcamento> orcamentoOpt = orcamentoService.buscarPorId(id);
+
+        if (orcamentoOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Orcamento orcamento = orcamentoOpt.get();
+
+        // Calcular valor total (exemplo: R$ 2,00 por kg)
+
+        try {
+            Map<String, Object> pixData = orcamentoService.gerarQRCodePix(orcamento.getValorTotal());
+            return ResponseEntity.ok(pixData);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "error", "Erro ao gerar QR Code PIX",
+                            "message", e.getMessage()
+                    ));
+        }
+    }
+    // Endpoint para debug do payload PIX
+    @GetMapping("/debug-payload")
+    public ResponseEntity<?> debugPayload(@RequestParam Double valor) {
+        try {
+            // Gera o payload e QR Code
+            Map<String, Object> pixData = orcamentoService.gerarQRCodePix(valor);
+            String payload = (String) pixData.get("payload");
+
+            // Valida o payload
+            boolean valido = orcamentoService.validarPayloadPix(payload);
+
+            // Retorna informações completas
+            return ResponseEntity.ok(Map.of(
+                    "payload", payload,
+                    "valor", valor,
+                    "valido", valido,
+                    "qrCodeBase64", pixData.get("qrCodeBase64"),
+                    "txid", pixData.get("txid"),
+                    "chavePix", pixData.get("chavePix"),
+                    "nomeRecebedor", pixData.get("nomeRecebedor")
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        }
+    }
+
+    // Endpoint apenas para testar o payload
+    @GetMapping("/teste-pix")
+    public ResponseEntity<?> testarPix(@RequestParam Double valor) {
+        try {
+            Map<String, Object> pixData = orcamentoService.gerarQRCodePix(valor);
+            return ResponseEntity.ok(pixData);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
 
     @PostMapping
     public ResponseEntity<String> criarOrcamento(@RequestBody Orcamento orcamento) {
