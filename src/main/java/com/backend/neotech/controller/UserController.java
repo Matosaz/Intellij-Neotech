@@ -6,11 +6,15 @@ import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.model.User;
 import com.backend.neotech.repository.ResetCodeRepository;
 import com.backend.neotech.repository.UserRepository;
+import com.backend.neotech.repository.UserSummary;
+
 import com.backend.neotech.service.EmailService;
 import com.backend.neotech.service.ResetCodeService;
 import com.backend.neotech.service.UserService;
 import com.fasterxml.jackson.databind.MapperFeature;
+import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
@@ -107,6 +111,24 @@ public class UserController {
         }
         return ResponseEntity.ok(Collections.singletonMap("exists", exists));
     }
+//---------------CONSULTAS OTIMIZADAS PARA A TELA DE RANKING-----------------------//
+    @GetMapping("/ranking")
+    public ResponseEntity<List<UserSummary>> getRanking() {
+        List<UserSummary> ranking = userRepository.findAllUsersWithTotalPoints();
+        return ResponseEntity.ok(ranking);
+    }
+    @GetMapping("/me/avatar")
+    public ResponseEntity<String> getLoggedUserAvatar(@RequestParam Long userId) {
+        Optional<byte[]> avatarOpt = userRepository.findAvatarByUserId(userId);
+
+        if (avatarOpt.isEmpty() || avatarOpt.get() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String avatarBase64 = Base64.getEncoder().encodeToString(avatarOpt.get());
+        return ResponseEntity.ok(avatarBase64);
+    }
+//--------------------------------------------------------------------------------//
 
     // Listar todos os usuários
     @GetMapping
@@ -151,6 +173,8 @@ public class UserController {
             throw new BadRequest("'" + id + "' não é um número inteiro válido. Por favor, forneça um valor inteiro, como 10.");
         }
     }
+
+
 
     // Criar um novo usuário
     @PostMapping

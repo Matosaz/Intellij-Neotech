@@ -4,6 +4,7 @@ import com.backend.neotech.service.OrcamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.mail.internet.MimeMessage;  // Alteração para Jakarta Mail
 import jakarta.mail.MessagingException;  // Adicionando import da exceção
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.MailException;
@@ -42,11 +43,12 @@ public class EmailService {
         try {
             // Criando um MimeMessage
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             // Definindo o conteúdo do e-mail
-            helper.setTo(toEmail);
-            helper.setSubject("Recuperação de Senha - NeoTech");
+            helper.setFrom("neotech.empresarial@gmail.com"); // Deve ser um e-mail válido no SendGrid
+
+            helper.setTo(toEmail);            helper.setSubject("Recuperação de Senha - NeoTech");
             helper.setText(htmlMessage, true); // O segundo parâmetro 'true' define que o conteúdo é HTML
 
             // Enviando o e-mail
@@ -114,7 +116,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom("naoresponder@neotech.com");
+            helper.setFrom("no-reply@neotech.com");
             helper.setTo(toEmail);
             helper.setSubject("Confirmação de Agendamento - NeoTech");
             helper.setText(htmlMessage, true);

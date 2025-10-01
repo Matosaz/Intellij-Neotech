@@ -46,7 +46,6 @@ public class OrcamentoController {
 
         Orcamento orcamento = orcamentoOpt.get();
 
-        // Calcular valor total (exemplo: R$ 2,00 por kg)
 
         try {
             Map<String, Object> pixData = orcamentoService.gerarQRCodePix(orcamento.getValorTotal());
