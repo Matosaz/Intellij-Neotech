@@ -13,6 +13,8 @@ public class NeotechApplication {
         System.setProperty("SPRING_USERNAME", dotenv.get("SPRING_USERNAME"));
         System.setProperty("SPRING_PASSWORD", dotenv.get("SPRING_PASSWORD"));
         System.setProperty("SENDGRID_API_KEY", dotenv.get("SENDGRID_API_KEY"));
+        System.setProperty("SENDGRID_USERNAME", dotenv.get("SENDGRID_USERNAME"));
+
         SpringApplication.run(NeotechApplication.class, args);
     }
 

@@ -83,7 +83,7 @@ public class UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFound("Usuário com ID " + id + " não encontrado."));
     }
-
+//tESTE 2
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
