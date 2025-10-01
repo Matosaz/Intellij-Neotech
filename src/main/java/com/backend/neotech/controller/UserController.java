@@ -126,6 +126,25 @@ public class UserController {
         String avatarBase64 = Base64.getEncoder().encodeToString(avatarOpt.get());
         return ResponseEntity.ok(avatarBase64);
     }
+    @GetMapping("/ranking/top/avatar")
+    public ResponseEntity<String> getTopUserAvatar() {
+        List<Long> topUserIds = userRepository.findTopUserId();
+        if (topUserIds.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Long topUserId = topUserIds.get(0);
+        Optional<byte[]> avatarOpt = userRepository.findAvatarByUserId(topUserId);
+
+        if (avatarOpt.isEmpty() || avatarOpt.get() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String avatarBase64 = Base64.getEncoder().encodeToString(avatarOpt.get());
+        return ResponseEntity.ok(avatarBase64);
+    }
+
+
 //--------------------------------------------------------------------------------//
 
     // Listar todos os usuários
