@@ -1,8 +1,9 @@
 package com.backend.neotech.repository;
-import com.backend.neotech.model.Orcamento;
+
 import com.backend.neotech.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import com.backend.neotech.repository.UserSummary;
 
 import java.util.List;
 import java.util.Optional;

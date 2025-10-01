@@ -1,6 +1,4 @@
 package com.backend.neotech.controller;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import com.backend.neotech.exceptions.BadRequest;
 import com.backend.neotech.model.User;
@@ -12,9 +10,7 @@ import com.backend.neotech.service.EmailService;
 import com.backend.neotech.service.ResetCodeService;
 import com.backend.neotech.service.UserService;
 import com.fasterxml.jackson.databind.MapperFeature;
-import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
