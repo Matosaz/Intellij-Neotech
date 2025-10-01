@@ -14,7 +14,7 @@ public class ResetCodeService {
     //Correção de bugs no sistema de redefinição de senha
     @Autowired
     private ResetCodeRepository resetCodeRepository;
-
+//TEste
     public void storeResetCode(String email, String code) {
         ResetCode resetCode = new ResetCode();
         resetCode.setEmail(email);
