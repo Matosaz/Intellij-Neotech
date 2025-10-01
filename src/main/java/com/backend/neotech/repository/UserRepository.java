@@ -22,6 +22,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u.avatar FROM User u WHERE u.id = :userId")
     Optional<byte[]> findAvatarByUserId(Long userId);
 
+    @Query("SELECT COALESCE(SUM(o.pontos), 0) FROM Orcamento o WHERE o.usuario.id = :userId AND o.codStatus = 'CONCLUIDA'")
+    Integer findTotalPointsByUserId(Long userId);
+
+
     @Query("SELECT u.id FROM User u " +
             "LEFT JOIN Orcamento o ON o.usuario.id = u.id AND o.codStatus = 'CONCLUIDA' " +
             "GROUP BY u.id " +

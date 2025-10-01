@@ -87,6 +87,9 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+    public Integer getUserPoints(Long userId) {
+        return userRepository.findTotalPointsByUserId(userId);
+    }
 
     public User createUser(User user) {
         // Adicionando log para depuração

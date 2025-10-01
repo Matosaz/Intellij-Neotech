@@ -156,6 +156,16 @@ public class UserController {
     public ResponseEntity<String> ping() {
         return ResponseEntity.ok("pong");
     }
+    @GetMapping("/me/points")
+    public ResponseEntity<Map<String, Object>> getUserTotalPoints(@RequestParam Long userId) {
+        // Chama o serviço para pegar os pontos
+        Integer totalPoints = userService.getUserPoints(userId);
+
+        // Retorna JSON { "pontos": 123 }
+        Map<String, Object> response = Map.of("pontos", totalPoints);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getUserById(@PathVariable(value = "id") String id) {
         try {
