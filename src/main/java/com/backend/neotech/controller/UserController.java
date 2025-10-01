@@ -112,6 +112,8 @@ public class UserController {
         return ResponseEntity.ok(Collections.singletonMap("exists", exists));
     }
 //---------------CONSULTAS OTIMIZADAS PARA A TELA DE RANKING-----------------------//
+    //Teste
+
     @GetMapping("/ranking")
     public ResponseEntity<List<UserSummary>> getRanking() {
         List<UserSummary> ranking = userRepository.findAllUsersWithTotalPoints();

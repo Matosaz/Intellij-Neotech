@@ -19,7 +19,7 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
-
+//Teste
     public void sendResetCode(String toEmail, String code) throws MailException {
         // Montando o corpo HTML do e-mail
         String htmlMessage = "<!DOCTYPE html>"
