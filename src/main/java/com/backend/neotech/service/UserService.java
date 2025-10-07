@@ -103,13 +103,20 @@ public class UserService {
     public User updateUser(Long id, User userDetails) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new NotFound("Usuário com ID " + id + " não encontrado."));
-
+        System.out.println("Status recebido: " + userDetails.getCodStatus());
         // --- Início dos logs para depuração (Mantenha se ainda tiver dúvidas) ---
         System.out.println("--- DEBUG INÍCIO UPDATE USER ---");
         System.out.println("Existing User Admin ANTES da atualização: " + existingUser.getAdmin());
         System.out.println("User Details Admin Recebido na Requisição: " + userDetails.getAdmin());
         // --- Fim dos logs ---
 
+// 👉 ADICIONE AQUI
+        if (userDetails.getCodStatus() != null) {
+            existingUser.setCodStatus(userDetails.getCodStatus().toUpperCase());
+            System.out.println("Status alterado para: " + existingUser.getCodStatus());
+        } else {
+            System.out.println("CodStatus não enviado — mantendo: " + existingUser.getCodStatus());
+        }
         // Lista de campos que podem ser atualizados
         List<String> updatableFields = Arrays.asList(
                 "nome", "email", "cpf", "telefone", "cep",

@@ -48,6 +48,19 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody User loginUser) {
         Optional<User> userOpt = userService.getUserByEmail(loginUser.getEmail());
 
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Usuário não encontrado!"));
+        }
+
+        User user = userOpt.get();
+
+        // 🔍 Validação de status no usuário do banco
+        if ("inativo".equalsIgnoreCase(user.getCodStatus())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Usuário inativado. Acesso negado."));
+        }
+
         if (userOpt.isPresent() && passwordEncoder.matches(loginUser.getSenha(), userOpt.get().getSenha())) {
             Map<String, String> response = new HashMap<>();
             response.put("message", "Login bem-sucedido!");
@@ -60,6 +73,8 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Credenciais inválidas!"));
         }
+        // 🔍 Validação de status
+
     }
 
     @PostMapping("/forgot-password")
@@ -188,6 +203,7 @@ public class UserController {
             response.put("cpf", user.getCpf());
             response.put("data_nascimento", user.getData_nascimento()); //Testemos para verificar se funcionará
             response.put("data_criacao", user.getDataCriacao()); //Testemos para verificar se funcionará
+            response.put("codStatus", user.getCodStatus()); //Teste de atualização de status do usuário
 
 
 
