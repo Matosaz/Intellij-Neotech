@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
-//teste
+//test
 @Service
 public class EmailService {
 
