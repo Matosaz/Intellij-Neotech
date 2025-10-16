@@ -1,132 +1,228 @@
 package com.backend.neotech.service;
-import com.backend.neotech.service.CategoriaService;
-import com.backend.neotech.service.OrcamentoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import jakarta.mail.internet.MimeMessage;  // Alteração para Jakarta Mail
-import jakarta.mail.MessagingException;  // Adicionando import da exceção
+
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
-import java.time.LocalTime;
-import java.util.Date;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
-//Teste
-    public void sendResetCode(String toEmail, String code) throws MailException {
-        // Montando o corpo HTML do e-mail
-        String htmlMessage = "<!DOCTYPE html>"
-                + "<html lang=\"pt-BR\">"
-                + "<head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Recuperação de Senha - NeoTech</title><style>"
-                + "body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }"
-                + ".email-container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); overflow: hidden; }"
-                + ".email-header { background-color: #5faa84; color: #fff; text-align: center; padding: 20px; }"
-                + ".email-body { padding: 20px; }"
-                + ".code { font-size: 20px; font-weight: bold; color: #5faa84; padding: 10px; background-color: #f1f1f1; border-radius: 4px; margin: 20px 0; }"
-                + ".footer { background-color: #f9f9f9; text-align: center; padding: 10px; font-size: 12px; color: #777; }"
-                + ".footer a { color: #007BFF; text-decoration: none; }"
-                + "</style></head>"
-                + "<body><div class=\"email-container\"><div class=\"email-header\"><h1>Recuperação de Senha - NeoTech</h1></div>"
-                + "<div class=\"email-body\"><p>Olá,</p><p>Recebemos uma solicitação para redefinir a senha da sua conta NeoTech.</p>"
-                + "<p>Utilize o código abaixo para continuar com o processo de recuperação:</p><div class=\"code\">🔐 Código de recuperação: "
-                + code + "</div><p>Este código é válido por 10 minutos.</p><p>Se você não solicitou a recuperação de senha, por favor, ignore este e-mail.</p>"
-                + "<p>Atenciosamente,</p><p>Equipe NeoTech</p></div><div class=\"footer\"><p>&copy; 2025 NeoTech. Todos os direitos reservados.</p>"
-                + "<p><a href=\"https://neotechgroup.netlify.app\">Visite nosso site</a></p></div></div></body></html>";
+    @Value("${app.brevo.api.key}")
+    private String brevoApiKey;
 
-        try {
-            // Criando um MimeMessage
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    @Value("${app.mail.from}")
+    private String fromEmail;
 
-            // Definindo o conteúdo do e-mail
-            helper.setFrom("neotech.empresarial@gmail.com"); // Deve ser um e-mail válido no SendGrid
+    @Value("${app.brevo.from.name}")
+    private String fromName;
 
-            helper.setTo(toEmail);            helper.setSubject("Recuperação de Senha - NeoTech");
-            helper.setText(htmlMessage, true); // O segundo parâmetro 'true' define que o conteúdo é HTML
+    // URL CORRETA da API Brevo (atualizada)
+    private final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
-            // Enviando o e-mail
-            mailSender.send(message);
-            System.out.println("Código enviado para o e-mail: " + toEmail);
-        } catch (MessagingException e) {
-            System.out.println("Erro ao configurar o e-mail: " + e.getMessage());
-            // Aqui você pode tratar ou lançar uma nova exceção
-            throw new RuntimeException("Erro ao configurar o e-mail", e); // Exemplo de lançar uma exceção runtime
-        } catch (MailException e) {
-            System.out.println("Erro ao enviar o e-mail: " + e.getMessage());
-            throw e; // Propagar exceção caso ocorra algum erro no envio
-        }
+    /**
+     * Envia código de redefinição de senha via Brevo API.
+     */
+    public void sendResetCode(String toEmail, String code) {
+        String subject = "Recuperação de Senha - NeoTech";
+
+        String htmlMessage = """
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head><meta charset="UTF-8"><title>Recuperação de Senha</title>
+            <style>
+                body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
+                .container { background: #fff; border-radius: 8px; padding: 20px; max-width: 600px; margin: 0 auto; }
+                .header { background: #5faa84; color: #fff; text-align: center; padding: 10px; border-radius: 8px 8px 0 0; }
+                .code { font-size: 24px; font-weight: bold; color: #5faa84; background: #f1f1f1; padding: 15px;
+                        border-radius: 5px; margin: 20px 0; text-align: center; letter-spacing: 2px; }
+                .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }
+            </style></head>
+            <body>
+                <div class='container'>
+                    <div class='header'><h2>Recuperação de Senha - NeoTech</h2></div>
+                    <p>Olá,</p>
+                    <p>Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+                    <p>Use o código abaixo para continuar:</p>
+                    <div class='code'>%s</div>
+                    <p>O código é válido por <strong>10 minutos</strong>.</p>
+                    <p>Se você não solicitou a recuperação, ignore este e-mail.</p>
+                    <div class='footer'>
+                        <p>Atenciosamente,<br><strong>Equipe NeoTech</strong></p>
+                    </div>
+                </div>
+            </body></html>
+        """.formatted(code);
+
+        sendEmailViaBrevo(toEmail, subject, htmlMessage);
     }
 
+    /**
+     * Envia e-mail de confirmação de agendamento.
+     */
+    public void sendConfirmationEmail(String toEmail, String nomeCliente, java.util.Date dataColeta,
+                                      java.sql.Time horaColeta, String endereco, String numero,
+                                      String bairro, String cidade, String estado) {
 
-    public void enviarConfirmacaoOrcamento(String toEmail, String nomeCliente, Date dataColeta,
-                                           Time horaColeta, String endereco, String numero,
-                                           String bairro, String cidade, String estado) throws MailException {
+        String subject = "Confirmação de Agendamento - NeoTech";
+        SimpleDateFormat sdfData = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat sdfHora = new SimpleDateFormat("HH:mm");
+        sdfData.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+        sdfHora.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
 
-        // Montando o corpo HTML do e-mail
-        String htmlMessage = "<!DOCTYPE html>"
-                + "<html lang=\"pt-BR\">"
-                + "<head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-                + "<title>Seu agendamento foi confirmado</title>"
-                + "<style>"
-                + "body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }"
-                + ".email-container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); overflow: hidden; }"
-                + ".email-header { background-color: #5faa84; color: #fff; text-align: center; padding: 20px; }"
-                + ".email-body { padding: 20px; }"
-                + ".section { margin-bottom: 20px; }"
-                + ".section-title { color: #2E7D32; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 10px }"
-                + ".footer { background-color: #f9f9f9; text-align: center; padding: 10px; font-size: 12px; color: #777; }"
-                + ".footer a { color: #007BFF; text-decoration: none; }"
-                + "</style></head>"
-                + "<body>"
-                + "<div class=\"email-container\">"
-                + "<div class=\"email-header\">"
-                + "<h1>Confirmação de Agendamento - NeoTech</h1>"
-                + "</div>"
-                + "<div class=\"email-body\">"
-                + "<p>Olá " + nomeCliente + ",</p>"
-                + "<p>Seu agendamento de coleta foi confirmado com sucesso!</p>"
+        String htmlMessage = """
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head><meta charset="UTF-8"><title>Confirmação de Agendamento</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: #f4f4f4; color: #333; margin: 0; padding: 20px; }
+                .container { background: #fff; border-radius: 8px; padding: 20px; max-width: 600px; margin: 0 auto; }
+                .header { background: #5faa84; color: #fff; text-align: center; padding: 10px; border-radius: 8px 8px 0 0; }
+                .section { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                .title { color: #2E7D32; font-weight: bold; display: inline-block; width: 100px; }
+                .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }
+            </style></head>
+            <body>
+                <div class='container'>
+                    <div class='header'><h2>Confirmação de Agendamento - NeoTech</h2></div>
+                    <p>Olá <strong>%s</strong>,</p>
+                    <p>Seu agendamento de coleta foi confirmado com sucesso!</p>
+                    
+                    <div class='section'>
+                        <p><span class='title'>Data:</span> %s</p>
+                        <p><span class='title'>Horário:</span> %s</p>
+                        <p><span class='title'>Endereço:</span> %s, %s</p>
+                        <p><span class='title'>Bairro:</span> %s</p>
+                        <p><span class='title'>Cidade/UF:</span> %s - %s</p>
+                    </div>
+                    
+                    <p><strong>Importante:</strong> Nossa equipe entrará em contato para confirmar os detalhes finais.</p>
+                    
+                    <div class='footer'>
+                        <p>Atenciosamente,<br><strong>Equipe Neotech</strong></p>
+                    </div>
+                </div>
+            </body></html>
+        """.formatted(nomeCliente, sdfData.format(dataColeta), sdfHora.format(horaColeta),
+                endereco, numero, bairro, cidade, estado);
 
-                + "<div class=\"section\">"
-                + "<h3 class=\"section-title\">Detalhes do Agendamento</h3>"
-                + "<p><strong>Data:</strong> " + dataColeta + "</p>"
-                + "<p><strong>Horário:</strong> " + horaColeta + "</p>"
-                + "<p><strong>Local:</strong> " + endereco + ", " + numero + " - " + bairro + ", " + cidade + "/" + estado + "</p>"
-                + "</div>"
-
-                + "<p>Em breve nossa equipe entrará em contato para confirmar os detalhes.</p>"
-                + "<p>Atenciosamente,</p>"
-                + "<p>Equipe NeoTech</p>"
-                + "</div>"
-                + "<div class=\"footer\">"
-                + "<p>&copy; 2025 NeoTech. Todos os direitos reservados.</p>"
-                + "<p><a href=\"https://neotechgroup.netlify.app\">Visite nosso site</a></p>"
-                + "</div>"
-                + "</div>"
-                + "</body>"
-                + "</html>";
-
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom("no-reply@neotech.com");
-            helper.setTo(toEmail);
-            helper.setSubject("Confirmação de Agendamento - NeoTech");
-            helper.setText(htmlMessage, true);
-
-            mailSender.send(message);
-            System.out.println("Email de confirmação enviado para: " + toEmail);
-        } catch (MessagingException e) {
-            System.err.println("Erro ao configurar email de confirmação: " + e.getMessage());
-            throw new RuntimeException("Erro ao configurar email de confirmação", e);
-        }
+        sendEmailViaBrevo(toEmail, subject, htmlMessage);
     }
 
+    /**
+     * Versão simplificada do método de confirmação
+     */
+    public void sendConfirmationEmail(String toEmail, String nomeCliente, java.util.Date dataColeta,
+                                      String horaColeta, String enderecoCompleto) {
+
+        String subject = "Confirmação de Agendamento - NeoTech";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        sdf.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+
+        String htmlContent = """
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head><meta charset="UTF-8"><title>Confirmação de Agendamento</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: #f4f4f4; color: #333; margin: 0; padding: 20px; }
+                .container { background: #fff; border-radius: 8px; padding: 20px; max-width: 600px; margin: 0 auto; }
+                .header { background: #5faa84; color: #fff; text-align: center; padding: 10px; border-radius: 8px 8px 0 0; }
+                .info-box { background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0; }
+                .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }
+            </style></head>
+            <body>
+                <div class='container'>
+                    <div class='header'><h2>Confirmação de Agendamento - NeoTech</h2></div>
+                    <p>Olá <strong>%s</strong>,</p>
+                    <p>Seu agendamento de coleta foi confirmado!</p>
+                    
+                    <div class='info-box'>
+                        <p><strong>Data:</strong> %s</p>
+                        <p><strong>Horário:</strong> %s</p>
+                        <p><strong>Endereço:</strong> %s</p>
+                    </div>
+                    
+                    <p>Em breve nossa equipe entrará em contato para confirmar os detalhes.</p>
+                    
+                    <div class='footer'>
+                        <p>Atenciosamente,<br><strong>Equipe Neotech</strong></p>
+                    </div>
+                </div>
+            </body></html>
+        """.formatted(nomeCliente, sdf.format(dataColeta), horaColeta, enderecoCompleto);
+
+        sendEmailViaBrevo(toEmail, subject, htmlContent);
+    }
+
+    /**
+     * Método principal para envio de emails via Brevo API
+     */
+    private void sendEmailViaBrevo(String toEmail, String subject, String htmlContent) {
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost request = new HttpPost(BREVO_API_URL);
+
+            // Headers necessários
+            request.setHeader("accept", "application/json");
+            request.setHeader("content-type", "application/json");
+            request.setHeader("api-key", brevoApiKey);
+
+            // Escape do conteúdo HTML para JSON
+            String escapedHtmlContent = htmlContent
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t");
+
+            String escapedSubject = subject
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"");
+
+            // JSON payload correto para Brevo API
+            String jsonPayload = String.format("""
+                {
+                    "sender": {
+                        "email": "%s",
+                        "name": "%s"
+                    },
+                    "to": [
+                        {
+                            "email": "%s"
+                        }
+                    ],
+                    "subject": "%s",
+                    "htmlContent": "%s"
+                }
+                """, fromEmail, fromName, toEmail, escapedSubject, escapedHtmlContent);
+
+            request.setEntity(new StringEntity(jsonPayload, StandardCharsets.UTF_8));
+
+            // Executa a requisição e processa a resposta
+            try (CloseableHttpResponse response = client.execute(request)) {
+                int statusCode = response.getCode();
+                String responseBody = EntityUtils.toString(response.getEntity());
+
+                if (statusCode >= 200 && statusCode < 300) {
+                    System.out.println("✅ E-mail enviado com sucesso para: " + toEmail);
+                } else {
+                    System.err.println("❌ Erro ao enviar e-mail. Status: " + statusCode);
+                    System.err.println("Resposta: " + responseBody);
+                    throw new RuntimeException("Falha no envio do e-mail. Status: " + statusCode);
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao enviar e-mail para: " + toEmail);
+            e.printStackTrace();
+            throw new RuntimeException("Erro ao enviar e-mail via Brevo API: " + e.getMessage());
+        }
+    }
 }
