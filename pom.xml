@@ -50,7 +50,7 @@
         </dependency>
 
 
-        <!-- ZXing Core para geração de QR Code -->
+        <!-- ZXing Core para geração de TESTEQR Code -->
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
