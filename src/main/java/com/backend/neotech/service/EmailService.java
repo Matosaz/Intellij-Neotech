@@ -16,13 +16,13 @@ import java.util.TimeZone;
 @Service
 public class EmailService {
 
-    @Value("${BREVO_API_KEY}")
+    @Value("${app.brevo.api.key}")
     private String brevoApiKey;
 
-    @Value("${BREVO_FROM_EMAIL}")
+    @Value("${app.mail.from}")
     private String fromEmail;
 
-    @Value("${BREVO_FROM_NAME}")
+    @Value("${app.brevo.from.name}")
     private String fromName;
 
     // URL CORRETA da API Brevo (atualizada)
