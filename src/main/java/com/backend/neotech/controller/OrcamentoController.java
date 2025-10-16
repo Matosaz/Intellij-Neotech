@@ -1,0 +1,401 @@
+package com.backend.neotech.controller;
+
+import com.backend.neotech.exceptions.BadRequest;
+import com.backend.neotech.model.Orcamento;
+import com.backend.neotech.model.User;
+import com.backend.neotech.repository.UserRepository;
+import com.backend.neotech.service.EmailService;
+import com.backend.neotech.service.OrcamentoService;
+import com.backend.neotech.service.PixService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.*;
+
+@RestController
+@RequestMapping("/api/v1/orcamentos")
+public class OrcamentoController {
+    private static final String CHAVE_PIX = "442.042.038-33";
+    private static final String NOME_RECEBEDOR = "Matheus Pires";
+    private static final String CIDADE = "Barueri";
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    private final OrcamentoService orcamentoService;
+    @Autowired
+    private PixService pixService;
+
+    @Autowired
+    public OrcamentoController(OrcamentoService orcamentoService) {
+        this.orcamentoService = orcamentoService;
+    }
+    //Gera QR Code PIX para um orçamento específico  //
+    // ✅ ENDPOINTS PIX BASEADOS NO PixService
+
+    /**
+     * GET - Gera QR Code PIX para orçamento com seu valor total
+     */
+    // =================
+
+
+    /** POST - Gera QR Code PIX usando valor personalizado */
+    @PostMapping("/{id}/pix")
+    public ResponseEntity<?> gerarPixComValorPersonalizado(
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, Object> requestBody) {
+
+        Double valor = extrairValorDoRequest(requestBody);
+        return gerarPixInterno(id, valor);
+    }
+
+    /** GET - Debug completo do PIX para um orçamento */
+    @GetMapping("/{id}/debug-pix")
+    public ResponseEntity<?> debugPix(@PathVariable Long id) {
+        Optional<Orcamento> orcamentoOpt = orcamentoService.buscarPorId(id);
+        if (orcamentoOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Orçamento não encontrado", "id", id));
+        }
+
+        Orcamento orcamento = orcamentoOpt.get();
+        Double valor = orcamento.getValorTotal();
+        if (valor == null || valor <= 0) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Orçamento sem valor definido", "orcamentoId", id));
+        }
+
+        String payload = pixService.gerarPayloadPix(valor);
+        String qrCodeBase64 = pixService.gerarQRCodePix(valor);
+
+        return ResponseEntity.ok(Map.of(
+                "orcamento", Map.of(
+                        "id", orcamento.getId(),
+                        "valorTotal", valor,
+                        "cliente", orcamento.getUsuario().getNome(),
+                        "status", orcamento.getCodStatus()
+                ),
+                "pix", Map.of(
+                        "payload", payload,
+                        "qrCodeBase64", qrCodeBase64,
+                        "chavePix", CHAVE_PIX,
+                        "nomeRecebedor", NOME_RECEBEDOR,
+                        "cidade", CIDADE
+                ),
+                "debug", Map.of(
+                        "timestamp", System.currentTimeMillis(),
+                        "payloadValido", pixService.validarPayload(payload)
+                )
+        ));
+    }
+
+    /** GET - Valida payload PIX a partir de um valor informado */
+    @GetMapping("/validar-payload")
+    public ResponseEntity<?> validarPayload(@RequestParam Double valor) {
+        String payload = pixService.gerarPayloadPix(valor);
+        boolean valido = pixService.validarPayload(payload);
+        String qrCodeBase64 = pixService.gerarQRCodePix(valor);
+
+        return ResponseEntity.ok(Map.of(
+                "success", valido,
+                "payload", payload,
+                "qrCodeBase64", qrCodeBase64
+        ));
+    }
+
+    /** GET - Teste rápido de PIX com valor qualquer */
+    @GetMapping("/teste-pix-simples")
+    public ResponseEntity<?> testarPixSimples(@RequestParam Double valor) {
+        String payload = pixService.gerarPayloadPix(valor);
+        String qrCodeBase64 = pixService.gerarQRCodePix(valor);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "pix", Map.of(
+                        "payload", payload,
+                        "qrCodeBase64", qrCodeBase64,
+                        "valor", valor,
+                        "chavePix", CHAVE_PIX,
+                        "nomeRecebedor", NOME_RECEBEDOR,
+                        "cidade", CIDADE
+                )
+        ));
+    }
+    // Adicione este endpoint para debug detalhado
+    @GetMapping("/debug-payload-detalhado")
+    public ResponseEntity<?> debugPayloadDetalhado(@RequestParam Double valor) {
+        try {
+            String payload = pixService.gerarPayloadPix(valor);
+            Map<String, Object> analise = pixService.analisarPayload(payload);
+
+            // Análise manual da estrutura
+            Map<String, Object> estrutura = Map.of(
+                    "header", payload.substring(0, 6),
+                    "merchantInfo", extrairCampo(payload, "26"),
+                    "amount", extrairCampo(payload, "54"),
+                    "currency", extrairCampo(payload, "53"),
+                    "country", extrairCampo(payload, "58"),
+                    "merchantName", extrairCampo(payload, "59"),
+                    "merchantCity", extrairCampo(payload, "60"),
+                    "additionalData", extrairCampo(payload, "62"),
+                    "crc", payload.substring(payload.length() - 4)
+            );
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "payloadCompleto", payload,
+                    "analise", analise,
+                    "estrutura", estrutura,
+                    "qrCodeBase64", pixService.gerarQRCodePix(valor)
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        }
+    }
+
+    private String extrairCampo(String payload, String campoId) {
+        try {
+            int index = payload.indexOf(campoId);
+            if (index == -1) return "Não encontrado";
+
+            int length = Integer.parseInt(payload.substring(index + 2, index + 4));
+            return payload.substring(index + 4, index + 4 + length);
+        } catch (Exception e) {
+            return "Erro na extração";
+        }
+    }
+    /** POST - Teste de PIX com valor no corpo da requisição */
+    @PostMapping("/teste-pix")
+    public ResponseEntity<?> testarPixPost(@RequestBody Map<String, Object> requestBody) {
+        Double valor = extrairValorDoRequest(requestBody);
+        if (valor == null) return ResponseEntity.badRequest().body(Map.of("error", "Parâmetro 'valor' é obrigatório"));
+
+        String payload = pixService.gerarPayloadPix(valor);
+        String qrCodeBase64 = pixService.gerarQRCodePix(valor);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "pix", Map.of(
+                        "payload", payload,
+                        "qrCodeBase64", qrCodeBase64,
+                        "valor", valor,
+                        "chavePix", CHAVE_PIX,
+                        "nomeRecebedor", NOME_RECEBEDOR,
+                        "cidade", CIDADE
+                )
+        ));
+    }
+
+    // ====================== MÉTODOS AUXILIARES ======================
+
+    private ResponseEntity<?> gerarPixInterno(Long id, Double valorPersonalizado) {
+        try {
+            Optional<Orcamento> orcamentoOpt = orcamentoService.buscarPorId(id);
+            if (orcamentoOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Orçamento não encontrado", "id", id));
+            }
+
+            Orcamento orcamento = orcamentoOpt.get();
+            Double valor = valorPersonalizado != null ? valorPersonalizado : orcamento.getValorTotal();
+
+            if (valor == null || valor <= 0) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Valor inválido ou não definido",
+                        "orcamentoId", id
+                ));
+            }
+
+            String payload = pixService.gerarPayloadPix(valor);
+            String qrCodeBase64 = pixService.gerarQRCodePix(valor);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "orcamento", Map.of(
+                            "id", orcamento.getId(),
+                            "valorOriginal", orcamento.getValorTotal(),
+                            "cliente", orcamento.getUsuario().getNome(),
+                            "status", orcamento.getCodStatus()
+                    ),
+                    "pix", Map.of(
+                            "qrCodeBase64", qrCodeBase64,
+                            "payload", payload,
+                            "valorCobrado", valor,
+                            "chavePix", CHAVE_PIX,
+                            "nomeRecebedor", NOME_RECEBEDOR,
+                            "cidade", CIDADE,
+                            "tipo", valor.equals(orcamento.getValorTotal()) ? "VALOR_ORIGINAL" : "VALOR_PERSONALIZADO"
+                    )
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", e.getMessage(),
+                    "orcamentoId", id
+            ));
+        }
+    }
+
+    private Double extrairValorDoRequest(Map<String, Object> requestBody) {
+        if (requestBody == null || !requestBody.containsKey("valor")) return null;
+        Object valorObj = requestBody.get("valor");
+        if (valorObj instanceof Number) return ((Number) valorObj).doubleValue();
+        try { return Double.parseDouble(valorObj.toString()); }
+        catch (Exception e) { return null; }
+    }
+
+
+    @PostMapping
+    public ResponseEntity<String> criarOrcamento(@RequestBody Orcamento orcamento) {
+        // Validações básicas
+        if (orcamento.getMetodoContato() == null || orcamento.getMetodoContato().isEmpty()) {
+            return ResponseEntity.badRequest().body("Método de contato é obrigatório.");
+        }
+        if (orcamento.getHoraColeta() == null) {
+            return ResponseEntity.badRequest().body("Hora da coleta é obrigatória.");
+        }
+        if (orcamento.getDataColeta() == null) {
+            return ResponseEntity.badRequest().body("Data da coleta é obrigatória.");
+        }
+        if (orcamento.getAceitaContato() == null) {
+            return ResponseEntity.badRequest().body("Aceite de contato é obrigatório.");
+        }
+
+        // Verifica se o usuário existe
+        if (orcamento.getUsuario() == null || orcamento.getUsuario().getId() == null) {
+            return ResponseEntity.badRequest().body("Usuário inválido ou não fornecido.");
+        }
+        Optional<User> usuarioOptional = userRepository.findById(orcamento.getUsuario().getId());
+        if (!usuarioOptional.isPresent()) {
+            return ResponseEntity.badRequest().body("Usuário não encontrado.");
+        }
+
+        try {
+            Orcamento savedOrcamento = orcamentoService.salvarOrcamento(orcamento);
+            URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(savedOrcamento.getId())
+                    .toUri();
+
+            User user = usuarioOptional.get();
+            emailService.sendConfirmationEmail(
+                    user.getEmail(),
+                    user.getNome(),
+                    savedOrcamento.getDataColeta(),
+                    savedOrcamento.getHoraColeta(),
+                    savedOrcamento.getEndereco(),
+                    savedOrcamento.getNumero(),
+                    savedOrcamento.getBairro(),
+                    savedOrcamento.getCidade(),
+                    savedOrcamento.getEstado()
+            );
+
+
+            return ResponseEntity.created(location).body("Orçamento criado com sucesso.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao salvar o orçamento.");
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Orcamento>> getAllOrcamentos() {
+        List<Orcamento> orcamentos = orcamentoService.listarOrcamentos();
+        return ResponseEntity.ok(orcamentos);
+    }
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<Orcamento>> getOrcamentosByUsuario(@PathVariable Long usuarioId) {
+        Optional<User> usuarioOptional = userRepository.findById(usuarioId);
+        if (!usuarioOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.emptyList());
+        }
+        List<Orcamento> orcamentos = orcamentoService.getOrcamentosByUsuario(usuarioId);
+        return ResponseEntity.ok(orcamentos);
+    }
+
+    @GetMapping("/categoria/{categoriaId}")
+    public ResponseEntity<List<Orcamento>> getOrcamentosByCategoria(@PathVariable Long categoriaId) {
+        List<Orcamento> orcamentos = orcamentoService.getOrcamentosByCategoria(categoriaId);
+        if (orcamentos.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList());
+        }
+        return ResponseEntity.ok(orcamentos);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, String>> atualizarOrcamento(
+            @PathVariable Long id,
+            @RequestBody Orcamento orcamentoAtualizado) {
+
+        Optional<Orcamento> orcamentoExistenteOpt = orcamentoService.buscarPorId(id);
+
+        if (!orcamentoExistenteOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Orçamento não encontrado."));
+        }
+
+        // Validações básicas
+        if (orcamentoAtualizado.getMetodoContato() == null || orcamentoAtualizado.getMetodoContato().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Método de contato é obrigatório."));
+        }
+        if (orcamentoAtualizado.getHoraColeta() == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Hora da coleta é obrigatória."));
+        }
+        if (orcamentoAtualizado.getDataColeta() == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Data da coleta é obrigatória."));
+        }
+        if (orcamentoAtualizado.getAceitaContato() == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Aceite de contato é obrigatório."));
+        }
+        try {
+            Orcamento orcamentoExistente = orcamentoExistenteOpt.get();
+
+            orcamentoExistente.setMetodoContato(orcamentoAtualizado.getMetodoContato());
+            orcamentoExistente.setHoraColeta(orcamentoAtualizado.getHoraColeta());
+            orcamentoExistente.setDataColeta(orcamentoAtualizado.getDataColeta());
+            orcamentoExistente.setAceitaContato(orcamentoAtualizado.getAceitaContato());
+            orcamentoExistente.setCategorias(orcamentoAtualizado.getCategorias());
+            orcamentoExistente.setCep(orcamentoAtualizado.getCep());
+            orcamentoExistente.setEndereco(orcamentoAtualizado.getEndereco());
+            orcamentoExistente.setNumero(orcamentoAtualizado.getNumero());
+            orcamentoExistente.setBairro(orcamentoAtualizado.getBairro());
+            orcamentoExistente.setCidade(orcamentoAtualizado.getCidade());
+            orcamentoExistente.setEstado(orcamentoAtualizado.getEstado());
+            orcamentoExistente.setTelefone(orcamentoAtualizado.getTelefone());
+            orcamentoExistente.setCodStatus(orcamentoAtualizado.getCodStatus());
+
+
+            orcamentoService.salvarOrcamento(orcamentoExistente);
+
+            return ResponseEntity.ok(Map.of("message", "Orçamento atualizado com sucesso!"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erro ao atualizar o orçamento."));
+        }
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrcamento(@PathVariable(value = "id") String id) {
+        try {
+            orcamentoService.deleteOrcamento(Long.parseLong(id));
+            return ResponseEntity.noContent().build();
+        } catch (NumberFormatException ex) {
+            throw new BadRequest("'" + id + "' não é um número inteiro válido. Por favor, forneça um valor inteiro, como 10.");
+        }
+    }
+
+}
