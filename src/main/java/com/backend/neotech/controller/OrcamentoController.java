@@ -95,66 +95,52 @@ public class OrcamentoController {
         ));
     }
 
-    /** GET - Valida payload PIX a partir de um valor informado */
-    @GetMapping("/validar-payload")
-    public ResponseEntity<?> validarPayload(@RequestParam Double valor) {
-        String payload = pixService.gerarPayloadPix(valor);
-        boolean valido = pixService.validarPayload(payload);
-        String qrCodeBase64 = pixService.gerarQRCodePix(valor);
+    // Endpoint para gerar PIX
+    @GetMapping("/{id}/pix")
+    public ResponseEntity<?> gerarPix(@PathVariable Long id) {
+        Optional<Orcamento> orcamentoOpt = orcamentoService.buscarPorId(id);
 
-        return ResponseEntity.ok(Map.of(
-                "success", valido,
-                "payload", payload,
-                "qrCodeBase64", qrCodeBase64
-        ));
-    }
+        if (orcamentoOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
-    /** GET - Teste rápido de PIX com valor qualquer */
-    @GetMapping("/teste-pix-simples")
-    public ResponseEntity<?> testarPixSimples(@RequestParam Double valor) {
-        String payload = pixService.gerarPayloadPix(valor);
-        String qrCodeBase64 = pixService.gerarQRCodePix(valor);
+        Orcamento orcamento = orcamentoOpt.get();
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "pix", Map.of(
-                        "payload", payload,
-                        "qrCodeBase64", qrCodeBase64,
-                        "valor", valor,
-                        "chavePix", CHAVE_PIX,
-                        "nomeRecebedor", NOME_RECEBEDOR,
-                        "cidade", CIDADE
-                )
-        ));
-    }
-    // Adicione este endpoint para debug detalhado
-    @GetMapping("/debug-payload-detalhado")
-    public ResponseEntity<?> debugPayloadDetalhado(@RequestParam Double valor) {
+        // Calcular valor total (exemplo: R$ 2,00 por kg)
+
         try {
-            String payload = pixService.gerarPayloadPix(valor);
-            Map<String, Object> analise = pixService.analisarPayload(payload);
+            Map<String, Object> pixData = orcamentoService.gerarQRCodePix(orcamento.getValorTotal());
+            return ResponseEntity.ok(pixData);
 
-            // Análise manual da estrutura
-            Map<String, Object> estrutura = Map.of(
-                    "header", payload.substring(0, 6),
-                    "merchantInfo", extrairCampo(payload, "26"),
-                    "amount", extrairCampo(payload, "54"),
-                    "currency", extrairCampo(payload, "53"),
-                    "country", extrairCampo(payload, "58"),
-                    "merchantName", extrairCampo(payload, "59"),
-                    "merchantCity", extrairCampo(payload, "60"),
-                    "additionalData", extrairCampo(payload, "62"),
-                    "crc", payload.substring(payload.length() - 4)
-            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "error", "Erro ao gerar QR Code PIX",
+                            "message", e.getMessage()
+                    ));
+        }
+    }
+    // Endpoint para debug do payload PIX
+    @GetMapping("/debug-payload")
+    public ResponseEntity<?> debugPayload(@RequestParam Double valor) {
+        try {
+            // Gera o payload e QR Code
+            Map<String, Object> pixData = orcamentoService.gerarQRCodePix(valor);
+            String payload = (String) pixData.get("payload");
 
+            // Valida o payload
+            boolean valido = orcamentoService.validarPayloadPix(payload);
+
+            // Retorna informações completas
             return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "payloadCompleto", payload,
-                    "analise", analise,
-                    "estrutura", estrutura,
-                    "qrCodeBase64", pixService.gerarQRCodePix(valor)
+                    "payload", payload,
+                    "valor", valor,
+                    "valido", valido,
+                    "qrCodeBase64", pixData.get("qrCodeBase64"),
+                    "txid", pixData.get("txid"),
+                    "chavePix", pixData.get("chavePix"),
+                    "nomeRecebedor", pixData.get("nomeRecebedor")
             ));
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "error", e.getMessage()
@@ -162,38 +148,18 @@ public class OrcamentoController {
         }
     }
 
-    private String extrairCampo(String payload, String campoId) {
+    // Endpoint apenas para testar o payload
+    @GetMapping("/teste-pix")
+    public ResponseEntity<?> testarPix(@RequestParam Double valor) {
         try {
-            int index = payload.indexOf(campoId);
-            if (index == -1) return "Não encontrado";
-
-            int length = Integer.parseInt(payload.substring(index + 2, index + 4));
-            return payload.substring(index + 4, index + 4 + length);
+            Map<String, Object> pixData = orcamentoService.gerarQRCodePix(valor);
+            return ResponseEntity.ok(pixData);
         } catch (Exception e) {
-            return "Erro na extração";
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
         }
     }
-    /** POST - Teste de PIX com valor no corpo da requisição */
-    @PostMapping("/teste-pix")
-    public ResponseEntity<?> testarPixPost(@RequestBody Map<String, Object> requestBody) {
-        Double valor = extrairValorDoRequest(requestBody);
-        if (valor == null) return ResponseEntity.badRequest().body(Map.of("error", "Parâmetro 'valor' é obrigatório"));
 
-        String payload = pixService.gerarPayloadPix(valor);
-        String qrCodeBase64 = pixService.gerarQRCodePix(valor);
-
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "pix", Map.of(
-                        "payload", payload,
-                        "qrCodeBase64", qrCodeBase64,
-                        "valor", valor,
-                        "chavePix", CHAVE_PIX,
-                        "nomeRecebedor", NOME_RECEBEDOR,
-                        "cidade", CIDADE
-                )
-        ));
-    }
 
     // ====================== MÉTODOS AUXILIARES ======================
 
